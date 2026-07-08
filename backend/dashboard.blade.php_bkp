@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MultiEcommerce Admin</title>
+</head>
+
+<body>
+
+<h1>Dashboard</h1>
+
+<h2>Loja: {{ $store->name }}</h2>
+
+<p>
+Usuário: {{ $user->name }}
+</p>
+
+<p>
+Email: {{ $user->email }}
+</p>
+
+<hr>
+
+<h3>Resumo</h3>
+
+<ul>
+    <li>Produtos: 0</li>
+    <li>Pedidos: 0</li>
+    <li>Clientes: 0</li>
+</ul>
+
+<form method="POST" action="/admin/logout">
+    @csrf
+    <button type="submit">
+        Sair
+    </button>
+</form>
+
+</body>
+</html>
