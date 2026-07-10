@@ -23,13 +23,77 @@
 
             <th>ID</th>
 
-            <th>Categoria</th>
+<th>
 
-            <th>Slug</th>
+<a class="text-white text-decoration-none"
+href="?sort=name&direction={{ request('direction')=='asc'?'desc':'asc' }}">
 
-	    <th>Products</th>
+Categoria
 
-            <th>Status</th>
+@if(request('sort')=='name')
+
+{{ request('direction')=='asc' ? '▲' : '▼' }}
+
+@endif
+
+</a>
+
+</th>
+
+<th>
+
+<a class="text-white text-decoration-none"
+href="?sort=slug&direction={{ request('direction')=='asc'?'desc':'asc' }}">
+
+Slug
+
+@if(request('sort')=='slug')
+
+{{ request('direction')=='asc' ? '▲' : '▼' }}
+
+@endif
+
+</a>
+
+</th>
+
+
+<th>
+
+<a class="text-white text-decoration-none"
+href="?sort=products_count&direction={{ request('direction')=='asc'?'desc':'asc' }}">
+
+Produtos
+
+@if(request('sort')=='products_count')
+
+{{ request('direction')=='asc' ? '▲' : '▼' }}
+
+@endif
+
+</a>
+
+</th>
+
+
+
+<th>
+
+<a class="text-white text-decoration-none"
+href="?sort=active&direction={{ request('direction')=='asc'?'desc':'asc' }}">
+
+Status
+
+@if(request('sort')=='active')
+
+{{ request('direction')=='asc' ? '▲' : '▼' }}
+
+@endif
+
+</a>
+
+</th>
+
 
             <th width="180">
 

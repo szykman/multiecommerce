@@ -9,21 +9,52 @@ use Illuminate\Support\Str;
 
 class CategoryController extends Controller
 {
-    public function index()
-    {
+//    public function index()
+public function index(Request $request)  
+
+  {
+
+// $categories = Category::where(
+    //  'store_id',
+   //  auth()->user()->store_id
+// )
+// ->withCount('products')
+// ->latest()
+// ->get();
+ //       return view(
+    //        'admin.categories.index',
+      //      compact('categories')
+  //      );
+//    }
+
 
 $categories = Category::where(
     'store_id',
     auth()->user()->store_id
 )
 ->withCount('products')
-->latest()
-->get();
-        return view(
-            'admin.categories.index',
-            compact('categories')
-        );
-    }
+->when($request->search, function($query) use ($request){
+
+    $query->where(
+        'name',
+        'like',
+        '%'.$request->search.'%'
+    );
+
+})
+->orderBy(
+    $request->get('sort','name'),
+    $request->get('direction','asc')
+)
+->paginate(10)
+->withQueryString();
+
+return view(
+    'admin.categories.index',
+    compact('categories')
+);
+
+}
 
     public function create()
     {
