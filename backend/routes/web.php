@@ -1,4 +1,5 @@
 <?php
+use App\Http\Controllers\Admin\CategoryController;
 use App\Services\TenantManager;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\Admin\AuthController;
@@ -21,8 +22,17 @@ Route::get('/admin/login', [AuthController::class, 'loginForm'])
 Route::get('/admin', [DashboardController::class, 'index'])
     ->middleware(['auth','admin']);
 
+Route::resource('/admin/categories', CategoryController::class)
+    ->middleware(['auth','admin']);
+
 Route::resource('/admin/products', ProductController::class)
     ->middleware(['auth','admin']);
+
+Route::patch(
+    '/admin/products/{product}/toggle',
+    [ProductController::class, 'toggle']
+)->name('products.toggle')
+ ->middleware(['auth','admin']);
 
 Route::post('/admin/login', [AuthController::class, 'login']);
 

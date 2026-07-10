@@ -2,11 +2,66 @@
 
 @section('content')
 
+
 <div class="d-flex justify-content-between align-items-center mb-4">
 
     <h2>Produtos</h2>
 
-    <a href="/admin/products/create" class="btn btn-primary">
+
+<form method="GET" class="row g-2 mb-4">
+
+    <div class="col-md-5">
+
+        <input
+            type="text"
+            name="search"
+            value="{{ request('search') }}"
+            class="form-control"
+            placeholder="Buscar produto">
+
+    </div>
+
+    <div class="col-md-4">
+
+        <select
+            name="category_id"
+            class="form-select">
+
+            <option value="">
+
+                Todas Categorias
+
+            </option>
+
+            @foreach($categories as $category)
+
+                <option
+                    value="{{ $category->id }}"
+                    @selected(request('category_id')==$category->id)>
+
+                    {{ $category->name }}
+
+                </option>
+
+            @endforeach
+
+        </select>
+
+    </div>
+
+    <div class="col-md-3">
+
+        <button class="btn btn-dark w-100">
+
+            Buscar
+
+        </button>
+
+</div>
+
+</form>
+
+  <a href="{{ route('products.create') }}" class="btn btn-primary">
         + Novo Produto
     </a>
 
@@ -17,12 +72,50 @@
     <thead class="table-dark">
 
         <tr>
-            <th width="90">Imagem</th>
-            <th>Produto</th>
-            <th>Preço</th>
-            <th>Estoque</th>
+            <th>Imagem</th>
+
+<th>
+    <a class="text-white text-decoration-none"
+       href="?sort=name&direction={{ request('direction')=='asc' ? 'desc':'asc' }}">
+
+        Produto
+
+        @if(request('sort')=='name')
+            {{ request('direction')=='asc' ? '▲' : '▼' }}
+        @endif
+
+    </a>
+</th>
+
+
+<th>
+    <a class="text-white text-decoration-none"
+       href="?sort=price&direction={{ request('direction')=='asc' ? 'desc':'asc' }}">
+
+        Preço
+
+        @if(request('sort')=='price')
+            {{ request('direction')=='asc' ? '▲' : '▼' }}
+        @endif
+
+    </a>
+</th>
+
+
+<th>
+    <a class="text-white text-decoration-none"
+       href="?sort=stock&direction={{ request('direction')=='asc' ? 'desc':'asc' }}">
+
+        Estoque
+
+        @if(request('sort')=='stock')
+            {{ request('direction')=='asc' ? '▲' : '▼' }}
+        @endif
+
+    </a>
+</th>
             <th>Status</th>
-            <th width="170">Ações</th>
+            <th width="220">Ações</th>
         </tr>
 
     </thead>
@@ -60,12 +153,27 @@
                 <br>
 
                 <small class="text-muted">
-
                     {{ $product->slug }}
-
                 </small>
 
-            </td>
+                <br>
+
+
+    @if($product->category)
+
+        <span class="badge bg-info text-dark">
+            {{ $product->category->name }}
+        </span>
+
+    @else
+
+        <span class="text-muted">
+            Sem categoria
+        </span>
+
+    @endif
+
+</td>
 
             <td>
 
@@ -79,34 +187,55 @@
 
             </td>
 
-            <td>
+<td>
 
-                @if($product->active)
+<form
+    action="{{ route('products.toggle', $product) }}"
+    method="POST">
 
-                    <span class="badge bg-success">
-                        Ativo
-                    </span>
+    @csrf
+    @method('PATCH')
 
-                @else
+    <button
+        class="btn btn-sm {{ $product->active ? 'btn-success' : 'btn-secondary' }}">
 
-                    <span class="badge bg-danger">
-                        Inativo
-                    </span>
+        {{ $product->active ? 'Ativo' : 'Inativo' }}
 
-                @endif
+    </button>
 
-            </td>
+</form>
 
-            <td>
+</td>
 
-                <a href="/admin/products/{{ $product->id }}/edit"
-                   class="btn btn-warning btn-sm">
 
-                    Editar
+<td>
 
-                </a>
+    <a href="{{ route('products.edit', $product) }}"
+       class="btn btn-warning btn-sm">
 
-            </td>
+        Editar
+
+    </a>
+
+    <form
+        action="{{ route('products.destroy', $product) }}"
+        method="POST"
+        class="d-inline"
+        onsubmit="return confirm('Deseja realmente excluir este produto?');">
+
+        @csrf
+        @method('DELETE')
+
+        <button
+            class="btn btn-danger btn-sm">
+
+            Excluir
+
+        </button>
+
+    </form>
+
+</td>
 
         </tr>
 
@@ -127,5 +256,11 @@
     </tbody>
 
 </table>
+
+<div class="mt-3">
+
+{{ $products->links() }}
+
+</div>
 
 @endsection

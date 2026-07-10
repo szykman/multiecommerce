@@ -18,7 +18,6 @@ class Category extends Model
     {
         static::addGlobalScope(new StoreScope);
     }
-
     public function products()
     {
         return $this->hasMany(Product::class);

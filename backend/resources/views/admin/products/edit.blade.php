@@ -6,7 +6,7 @@
 
     <div class="d-flex justify-content-between align-items-center mb-4">
 
-        <h2>Novo Produto</h2>
+        <h2>Editar Produto</h2>
 
         <a href="{{ route('products.index') }}"
            class="btn btn-secondary">
@@ -22,10 +22,11 @@
         <div class="card-body">
 
             <form method="POST"
-                  action="{{ route('products.store') }}"
+                  action="{{ route('products.update',$product) }}"
                   enctype="multipart/form-data">
 
                 @csrf
+                @method('PUT')
 
                 <div class="mb-3">
 
@@ -39,10 +40,11 @@
                         type="text"
                         name="name"
                         class="form-control"
-                        value="{{ old('name') }}"
+                        value="{{ old('name',$product->name) }}"
                         required>
 
                 </div>
+
 
                 <div class="mb-3">
 
@@ -55,9 +57,10 @@
                     <textarea
                         name="description"
                         class="form-control"
-                        rows="5">{{ old('description') }}</textarea>
+                        rows="5">{{ old('description',$product->description) }}</textarea>
 
                 </div>
+
 
                 <div class="row">
 
@@ -76,14 +79,14 @@
                                 class="form-select">
 
                                 <option value="">
-
                                     Sem categoria
-
                                 </option>
 
                                 @foreach($categories as $category)
 
-                                    <option value="{{ $category->id }}">
+                                    <option
+                                        value="{{ $category->id }}"
+                                        @selected(old('category_id',$product->category_id)==$category->id)>
 
                                         {{ $category->name }}
 
@@ -112,7 +115,7 @@
                                 step="0.01"
                                 name="price"
                                 class="form-control"
-                                required>
+                                value="{{ old('price',$product->price) }}">
 
                         </div>
 
@@ -131,9 +134,8 @@
                             <input
                                 type="number"
                                 name="stock"
-                                value="0"
                                 class="form-control"
-                                required>
+                                value="{{ old('stock',$product->stock) }}">
 
                         </div>
 
@@ -141,26 +143,87 @@
 
                 </div>
 
-                <div class="mb-4">
 
-                    <label class="form-label">
+                <div class="row">
 
-                        Imagem
+                    <div class="col-md-6">
 
-                    </label>
+                        <label class="form-label">
 
-                    <input
-                        type="file"
-                        name="image"
-                        class="form-control">
+                            Nova imagem
+
+                        </label>
+
+                        <input
+                            type="file"
+                            class="form-control"
+                            name="image">
+
+                    </div>
+
+                    <div class="col-md-3">
+
+                        <label class="form-label">
+
+                            Status
+
+                        </label>
+
+                        <select
+                            class="form-select"
+                            name="active">
+
+                            <option
+                                value="1"
+                                @selected($product->active)>
+
+                                Ativo
+
+                            </option>
+
+                            <option
+                                value="0"
+                                @selected(!$product->active)>
+
+                                Inativo
+
+                            </option>
+
+                        </select>
+
+                    </div>
 
                 </div>
 
+
+                @if($product->image)
+
+                    <hr>
+
+                    <div class="mb-4">
+
+                        <label class="form-label">
+
+                            Imagem Atual
+
+                        </label>
+
+                        <br>
+
+                        <img
+                            src="{{ asset('storage/'.$product->image) }}"
+                            class="img-thumbnail"
+                            style="max-width:220px;">
+
+                    </div>
+
+                @endif
+
+
                 <button
-                    type="submit"
                     class="btn btn-success">
 
-                    💾 Salvar Produto
+                    💾 Salvar Alterações
 
                 </button>
 
