@@ -1,53 +1,194 @@
-<!doctype html>
+@extends('store.layout')
 
-<html lang="pt-br">
+@section('content')
 
-<head>
+@include('store.partials.header')
 
-<meta charset="utf-8">
+<!-- HERO -->
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- HERO BANNER -->
 
-<title>MultiEcommerce</title>
+<section class="position-relative">
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+<img
+src="https://placehold.co/1600x600?text=Banner+da+Loja"
+class="w-100"
+style="height:600px;object-fit:cover;">
 
-</head>
 
-<body>
+<div class="position-absolute top-50 start-50 translate-middle text-center text-white">
 
-<nav class="navbar navbar-dark bg-dark">
+<h1 class="display-3 fw-bold">
+
+{{ $store->name }}
+
+</h1>
+
+
+<p class="fs-4">
+
+Os melhores produtos em um só lugar.
+
+</p>
+
+
+<a href="#produtos"
+class="btn btn-primary btn-lg px-5">
+
+Comprar Agora
+
+</a>
+
+
+</div>
+
+
+</section>
+
+<!-- SEARCH BOX -->
+
+<section class="py-4 bg-white">
 
 <div class="container">
 
-<a class="navbar-brand" href="/">
+<form method="GET" action="/">
 
-MultiEcommerce
+<div class="input-group input-group-lg shadow-sm">
+
+<input
+type="search"
+name="search"
+class="form-control"
+placeholder="O que você está procurando?"
+value="{{ request('search') }}">
+
+
+<button class="btn btn-primary px-4">
+
+<i class="bi bi-search"></i>
+
+Buscar
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</section>
+
+
+<!-- CATEGORIAS -->
+
+<section
+
+id="categorias"
+
+class="py-5 bg-white">
+
+<div class="container">
+
+<h2 class="mb-4">
+
+Categorias
+
+</h2>
+
+<div class="row">
+
+@forelse($categories as $category)
+
+<div class="col-md-3 mb-3">
+
+<div class="card product-card shadow-sm h-100">
+
+<a
+href="{{ route('store.category', $category->slug) }}"
+class="text-decoration-none text-dark">
+
+<div class="card product-card shadow-sm h-100">
+
+    <div class="card-body text-center">
+
+        <h5>{{ $category->name }}</h5>
+
+        <p class="text-muted">
+            {{ $category->products_count ?? '' }}
+        </p>
+
+    </div>
+
+</div>
 
 </a>
 
 </div>
 
-</nav>
+</div>
 
-<div class="container mt-5">
+@empty
 
-<h2>Nossos Produtos</h2>
+<div class="col">
+
+Nenhuma categoria cadastrada.
+
+</div>
+
+@endforelse
+
+</div>
+
+</div>
+
+</section>
+
+
+
+
+
+<!-- PRODUTOS -->
+
+<section
+
+id="produtos"
+
+class="py-5">
+
+<div class="container">
+
+<h2 class="mb-4">
+
+Produtos
+
+</h2>
 
 <div class="row">
 
-@foreach($products as $product)
+@forelse($products as $product)
 
-<div class="col-md-3">
+<div class="col-lg-3 col-md-4 col-sm-6 mb-4">
 
-<div class="card mb-4">
+<div class="card h-100 shadow-sm">
 
 @if($product->image)
 
 <img
+
 src="{{ asset('storage/'.$product->image) }}"
+
 class="card-img-top"
+
 style="height:220px;object-fit:cover;">
+
+@else
+
+<img
+
+src="https://placehold.co/400x300?text=Produto"
+
+class="card-img-top">
 
 @endif
 
@@ -59,17 +200,28 @@ style="height:220px;object-fit:cover;">
 
 </h5>
 
-<p>
+<p class="text-muted small">
 
-R$ {{ number_format($product->price,2,',','.') }}
+{{ Str::limit($product->description,80) }}
 
 </p>
 
-<a
-href="#"
-class="btn btn-success w-100">
+<h4 class="text-success">
 
-Comprar
+R$
+
+{{ number_format($product->price,2,',','.') }}
+
+</h4>
+
+<a
+
+href="{{ route('store.product',$product->slug) }}"
+
+
+class="btn btn-primary w-100">
+
+Ver Produto
 
 </a>
 
@@ -79,12 +231,26 @@ Comprar
 
 </div>
 
-@endforeach
+@empty
+
+<div class="col">
+
+Nenhum produto cadastrado.
+
+</div>
+
+@endforelse
 
 </div>
 
 </div>
 
-</body>
+</section>
 
-</html>
+
+
+
+
+@include('store.partials.footer')
+
+@endsection

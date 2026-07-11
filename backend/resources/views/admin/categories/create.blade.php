@@ -30,7 +30,7 @@
 
                     <label class="form-label">
 
-                        Nome da Categoria
+                      <b>Nome da Categoria</b>
 
                     </label>
 

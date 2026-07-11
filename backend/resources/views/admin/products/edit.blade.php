@@ -32,7 +32,7 @@
 
                     <label class="form-label">
 
-                        Nome
+                       <b>Nome</b>
 
                     </label>
 
@@ -50,7 +50,7 @@
 
                     <label class="form-label">
 
-                        Descrição
+                        <b>Descrição</b>
 
                     </label>
 
@@ -70,7 +70,7 @@
 
                             <label class="form-label">
 
-                                Categoria
+                                <b>Categoria</b>
 
                             </label>
 
@@ -106,7 +106,7 @@
 
                             <label class="form-label">
 
-                                Preço
+                                <b>Preço</b>
 
                             </label>
 
@@ -127,7 +127,7 @@
 
                             <label class="form-label">
 
-                                Estoque
+                                <b>Estoque</b>
 
                             </label>
 
@@ -150,7 +150,7 @@
 
                         <label class="form-label">
 
-                            Nova imagem
+                            <b>Nova imagem</b>
 
                         </label>
 
@@ -165,7 +165,7 @@
 
                         <label class="form-label">
 
-                            Status
+                            <b>Status</b>
 
                         </label>
 
@@ -204,7 +204,7 @@
 
                         <label class="form-label">
 
-                            Imagem Atual
+                            <b>Imagem Atual</b>
 
                         </label>
 

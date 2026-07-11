@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\View;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,6 +29,22 @@ $this->app->singleton(
     public function boot(): void
     {
 
-    Paginator::useBootstrapFive();
+    View::composer('store.*', function($view){
+
+        $tenant = app(\App\Services\TenantManager::class);
+
+        $store = $tenant->getStore();
+
+        $cart = session()->get('cart', []);
+
+        $cartCount = collect($cart)->sum('qty');
+
+        $view->with([
+            'store'=>$store,
+            'cartCount'=>$cartCount
+        ]);
+
+    });
+
     }
 }

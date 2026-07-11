@@ -14,7 +14,48 @@ Route::get('/tenant-test', function (TenantManager $tenant) {
     ];
 })->middleware('tenant');
 
-Route::get('/', [StoreController::class,'index']);
+//Route::get('/', [StoreController::class,'index']);
+
+Route::middleware('tenant')->group(function () {
+
+    Route::get('/', [StoreController::class,'index']);
+
+Route::get(
+    '/produto/{slug}',
+    [StoreController::class,'product']
+)->name('store.product');
+
+Route::get(
+    '/carrinho',
+    [StoreController::class,'cart']
+)->name('store.cart');
+
+Route::post(
+    '/carrinho/adicionar/{slug}',
+    [StoreController::class,'addToCart']
+)->name('store.cart.add');
+
+Route::post(
+    '/carrinho/remover/{id}',
+    [StoreController::class,'removeFromCart']
+)->name('store.cart.remove');
+
+    Route::get(
+        '/categoria/{slug}',
+        [StoreController::class,'category']
+    )->name('store.category');
+
+    // Futuras rotas:
+    // Route::get('/produto/{slug}', ...);
+    // Route::get('/carrinho', ...);
+
+});
+
+
+// Route::get(
+//    '/categoria/{slug}',
+//    [StoreController::class,'category']
+// )->name('store.category');
 
 Route::get('/admin/login', [AuthController::class, 'loginForm'])
     ->name('admin.login');
