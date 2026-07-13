@@ -40,16 +40,15 @@ Route::post(
     [StoreController::class,'removeFromCart']
 )->name('store.cart.remove');
 
+Route::get(
+    '/pagina/{slug}',
+    [StoreController::class,'page']
+)->name('store.page');
+
     Route::get(
         '/categoria/{slug}',
         [StoreController::class,'category']
     )->name('store.category');
-
-    // Futuras rotas:
-    // Route::get('/produto/{slug}', ...);
-    // Route::get('/carrinho', ...);
-
-});
 
 
 // Route::get(
@@ -80,3 +79,37 @@ Route::post('/admin/login', [AuthController::class, 'login']);
 Route::post('/admin/logout', [AuthController::class, 'logout'])
     ->name('admin.logout');
 
+
+Route::resource(
+    'admin/pages',
+    App\Http\Controllers\Admin\PageController::class
+)->middleware(['auth','admin']);
+
+
+Route::get(
+    '/admin/settings',
+    [App\Http\Controllers\Admin\StoreSettingsController::class,'edit']
+)->name('settings.edit')
+->middleware(['auth','admin']);
+
+Route::put(
+    '/admin/settings',
+    [App\Http\Controllers\Admin\StoreSettingsController::class,'update']
+)->name('settings.update')
+->middleware(['auth','admin']);
+
+Route::middleware(['auth'])
+    ->prefix('admin')
+    ->group(function () {
+
+        Route::resource(
+            'media',
+            \App\Http\Controllers\Admin\MediaController::class
+        );
+
+});
+    // Futuras rotas:
+    // Route::get('/produto/{slug}', ...);
+    // Route::get('/carrinho', ...);
+
+});

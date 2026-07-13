@@ -114,7 +114,24 @@
 
     </a>
 </th>
-            <th>Status</th>
+            <th>
+
+
+    <a class="text-white text-decoration-none"
+       href="?sort=stock&direction={{ request('direction')=='asc' ? 'desc':'asc' }}">
+
+        Status
+
+        @if(request('sort')=='stock')
+            {{ request('direction')=='asc' ? '▲' : '▼' }}
+        @endif
+
+    </a>
+
+
+
+
+</th>
             <th width="220">Ações</th>
         </tr>
 
@@ -208,34 +225,38 @@
 </td>
 
 
-<td>
 
-    <a href="{{ route('products.edit', $product) }}"
-       class="btn btn-warning btn-sm">
+             <td>
 
-        Editar
+                                <a
+                                    href="{{ route('products.edit',$product) }}"
+                                    class="btn btn-sm btn-outline-primary">
 
-    </a>
+                                    <i class="bi bi-pencil"></i>
 
-    <form
-        action="{{ route('products.destroy', $product) }}"
-        method="POST"
-        class="d-inline"
-        onsubmit="return confirm('Deseja realmente excluir este produto?');">
+                                </a>
+<form
+action="{{ route('products.destroy',$product) }}"
+method="POST"
+class="d-inline"
+onsubmit="return confirm('Deseja realmente excluir este produto?')">
 
-        @csrf
-        @method('DELETE')
+@csrf
+@method('DELETE')
 
-        <button
-            class="btn btn-danger btn-sm">
+<button class="btn btn-sm btn-danger">
 
-            Excluir
+<i class="bi bi-trash"></i>
 
-        </button>
+</button>
 
-    </form>
+</form>
 
-</td>
+
+                            </td>
+
+	
+
 
         </tr>
 

@@ -96,6 +96,28 @@ Categorias
 
 </a>
 
+<a href="/admin/pages"
+class="list-group-item list-group-item-action">
+
+<i class="bi bi-file-earmark-text"></i>
+
+Páginas
+
+</a>
+
+
+    <a
+        href="{{ route('media.index') }}"
+        class="list-group-item list-group-item-action">
+
+        <i class="bi bi-images"></i>
+
+        Biblioteca de Mídia
+
+    </a>
+
+
+
 <a href="#"
 class="list-group-item list-group-item-action disabled">
 
@@ -114,8 +136,8 @@ Clientes
 
 </a>
 
-<a href="#"
-class="list-group-item list-group-item-action disabled">
+
+    <a class="list-group-item list-group-item-action" href="{{ route('settings.edit') }}">
 
 <i class="bi bi-gear"></i>
 

@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
-use App\Models\Category;
-use App\Models\StoreSetting;
 
 class StoreController extends Controller
 {
@@ -15,12 +13,8 @@ class StoreController extends Controller
 
         $store = $tenant->getStore();
 
-        $settings = StoreSetting::firstOrCreate([
-            'store_id' => $store->id
-        ]);
 
-
-        $categories = Category::where(
+        $categories = \App\Models\Category::where(
             'store_id',
             $store->id
         )
@@ -37,7 +31,8 @@ class StoreController extends Controller
         ->get();
 
 
-        $cmsCategories = Category::where(
+
+        $cmsCategories = \App\Models\Category::where(
             'store_id',
             $store->id
         )
@@ -53,15 +48,19 @@ class StoreController extends Controller
         ->get();
 
 
-        $products = Product::where(
+
+        $products = \App\Models\Product::where(
             'store_id',
             $store->id
         )
-        ->whereHas('category',function($q){
 
-            $q->where('type','store');
 
-        })
+->whereHas('category',function($q){
+
+    $q->where('type','store');
+
+})
+
         ->where('active',1)
 
         ->when(request('search'), function ($query) {
@@ -83,7 +82,6 @@ class StoreController extends Controller
             'store.home',
             compact(
                 'store',
-                'settings',
                 'categories',
                 'cmsCategories',
                 'products'
@@ -94,19 +92,14 @@ class StoreController extends Controller
 
 
 
-
     public function category($slug)
     {
         $tenant = app(\App\Services\TenantManager::class);
 
         $store = $tenant->getStore();
 
-        $settings = StoreSetting::firstOrCreate([
-            'store_id' => $store->id
-        ]);
 
-
-        $category = Category::where(
+        $category = \App\Models\Category::where(
             'store_id',
             $store->id
         )
@@ -115,7 +108,8 @@ class StoreController extends Controller
         ->firstOrFail();
 
 
-        $categories = Category::where(
+
+        $categories = \App\Models\Category::where(
             'store_id',
             $store->id
         )
@@ -132,7 +126,8 @@ class StoreController extends Controller
         ->get();
 
 
-        $cmsCategories = Category::where(
+
+        $cmsCategories = \App\Models\Category::where(
             'store_id',
             $store->id
         )
@@ -148,7 +143,8 @@ class StoreController extends Controller
         ->get();
 
 
-        $products = Product::where(
+
+        $products = \App\Models\Product::where(
             'store_id',
             $store->id
         )
@@ -174,11 +170,11 @@ class StoreController extends Controller
         ->withQueryString();
 
 
+
         return view(
             'store.category',
             compact(
                 'store',
-                'settings',
                 'category',
                 'categories',
                 'cmsCategories',
@@ -198,12 +194,9 @@ class StoreController extends Controller
 
         $store = $tenant->getStore();
 
-        $settings = StoreSetting::firstOrCreate([
-            'store_id' => $store->id
-        ]);
 
 
-        $product = Product::where(
+        $product = \App\Models\Product::where(
             'store_id',
             $store->id
         )
@@ -212,7 +205,8 @@ class StoreController extends Controller
         ->firstOrFail();
 
 
-        $categories = Category::where(
+
+        $categories = \App\Models\Category::where(
             'store_id',
             $store->id
         )
@@ -222,7 +216,8 @@ class StoreController extends Controller
         ->get();
 
 
-        $cmsCategories = Category::where(
+
+        $cmsCategories = \App\Models\Category::where(
             'store_id',
             $store->id
         )
@@ -238,7 +233,8 @@ class StoreController extends Controller
         ->get();
 
 
-        $relatedProducts = Product::where(
+
+        $relatedProducts = \App\Models\Product::where(
             'store_id',
             $store->id
         )
@@ -249,11 +245,11 @@ class StoreController extends Controller
         ->get();
 
 
+
         return view(
             'store.product',
             compact(
                 'store',
-                'settings',
                 'product',
                 'categories',
                 'cmsCategories',
@@ -262,18 +258,20 @@ class StoreController extends Controller
         );
     }
 
+
+
+
+
+
     public function cart()
     {
         $tenant = app(\App\Services\TenantManager::class);
 
         $store = $tenant->getStore();
 
-        $settings = StoreSetting::firstOrCreate([
-            'store_id' => $store->id
-        ]);
 
 
-        $categories = Category::where(
+        $categories = \App\Models\Category::where(
             'store_id',
             $store->id
         )
@@ -283,7 +281,8 @@ class StoreController extends Controller
         ->get();
 
 
-        $cmsCategories = Category::where(
+
+        $cmsCategories = \App\Models\Category::where(
             'store_id',
             $store->id
         )
@@ -299,14 +298,15 @@ class StoreController extends Controller
         ->get();
 
 
+
         $cart = session()->get('cart', []);
+
 
 
         return view(
             'store.cart',
             compact(
                 'store',
-                'settings',
                 'categories',
                 'cmsCategories',
                 'cart'
@@ -326,7 +326,8 @@ class StoreController extends Controller
         $store = $tenant->getStore();
 
 
-        $product = Product::where(
+
+        $product = \App\Models\Product::where(
             'store_id',
             $store->id
         )
@@ -334,7 +335,9 @@ class StoreController extends Controller
         ->firstOrFail();
 
 
+
         $cart = session()->get('cart', []);
+
 
 
         if(isset($cart[$product->id])){
@@ -356,7 +359,9 @@ class StoreController extends Controller
         }
 
 
+
         session()->put('cart',$cart);
+
 
 
         return redirect()
@@ -376,9 +381,6 @@ class StoreController extends Controller
 
         $store = $tenant->getStore();
 
-        $settings = StoreSetting::firstOrCreate([
-            'store_id' => $store->id
-        ]);
 
 
         $page = Product::where(
@@ -395,7 +397,8 @@ class StoreController extends Controller
         ->firstOrFail();
 
 
-        $categories = Category::where(
+
+        $categories = \App\Models\Category::where(
             'store_id',
             $store->id
         )
@@ -405,7 +408,8 @@ class StoreController extends Controller
         ->get();
 
 
-        $cmsCategories = Category::where(
+
+        $cmsCategories = \App\Models\Category::where(
             'store_id',
             $store->id
         )
@@ -421,11 +425,11 @@ class StoreController extends Controller
         ->get();
 
 
+
         return view(
             'store.page',
             compact(
                 'store',
-                'settings',
                 'page',
                 'categories',
                 'cmsCategories'

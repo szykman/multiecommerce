@@ -23,6 +23,12 @@ public function index(Request $request)
             'store_id',
             auth()->user()->store_id
         )
+
+->whereHas('category',function($q){
+
+    $q->where('type','store');
+
+})
         ->with('category')
 
         ->when($request->search, function ($query) use ($request) {
@@ -34,7 +40,11 @@ public function index(Request $request)
             );
 
         })
+->whereHas('category', function($q){
 
+    $q->where('type','store');
+
+})
         ->when($request->category_id, function ($query) use ($request) {
 
             $query->where(
@@ -73,6 +83,8 @@ public function create()
         'store_id',
         auth()->user()->store_id
     )
+->where('active',1)
+->where('type','store')
     ->orderBy('name')
     ->get();
 
@@ -94,7 +106,11 @@ public function edit(Product $product)
    $categories = \App\Models\Category::where(
        'store_id',
        auth()->user()->store_id
-   )->orderBy('name')->get();
+   )
+->where('active',1)
+->where('type','store')
+->orderBy('name')
+->get();
 
     return view(
        'admin.products.edit',

@@ -29,4 +29,10 @@ class Store extends Model
     {
         return $this->hasMany(StoreDomain::class);
     }
+
+public function media()
+{
+    return $this->hasMany(Media::class);
+}
+
 }

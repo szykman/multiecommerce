@@ -66,20 +66,23 @@ return view(
         $data = $request->validate([
 
             'name' => 'required|max:255',
+	    'type'=>'required|in:store,cms',
 
         ]);
 
-        Category::create([
+Category::create([
 
-            'store_id' => auth()->user()->store_id,
+    'store_id' => auth()->user()->store_id,
 
-            'name' => $data['name'],
+    'name' => $data['name'],
 
-            'slug' => Str::slug($data['name']),
+    'slug' => Str::slug($data['name']),
 
-            'active' => true,
+    'active' => true,
 
-        ]);
+    'type' => $data['type'],
+
+]);
 
         return redirect()
             ->route('categories.index')
@@ -114,18 +117,22 @@ return view(
             'name' => 'required|max:255',
 
             'active' => 'required|boolean',
+'type'=>'required|in:store,cms',
 
         ]);
 
-        $category->update([
 
-            'name' => $data['name'],
+$category->update([
 
-            'slug' => Str::slug($data['name']),
+    'name' => $data['name'],
 
-            'active' => $data['active'],
+    'slug' => Str::slug($data['name']),
 
-        ]);
+    'active' => $data['active'],
+
+    'type' => $data['type'],
+
+]);
 
         return redirect()
             ->route('categories.index')

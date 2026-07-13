@@ -10,11 +10,21 @@
 
 <section class="position-relative">
 
+@if($settings?->banner)
+
 <img
-src="https://placehold.co/1600x600?text=Banner+da+Loja"
+src="{{ asset('storage/'.$settings->banner) }}"
 class="w-100"
 style="height:600px;object-fit:cover;">
 
+@else
+
+<img
+src="https://placehold.co/1600x600?text=Banner"
+class="w-100"
+style="height:600px;object-fit:cover;">
+
+@endif
 
 <div class="position-absolute top-50 start-50 translate-middle text-center text-white">
 
@@ -90,12 +100,6 @@ class="py-5 bg-white">
 
 <div class="container">
 
-<h2 class="mb-4">
-
-Categorias
-
-</h2>
-
 <div class="row">
 
 @forelse($categories as $category)
@@ -157,12 +161,6 @@ id="produtos"
 class="py-5">
 
 <div class="container">
-
-<h2 class="mb-4">
-
-Produtos
-
-</h2>
 
 <div class="row">
 

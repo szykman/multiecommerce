@@ -9,6 +9,7 @@ class Category extends Model
 {
     protected $fillable = [
         'store_id',
+	'type',
         'name',
         'slug',
         'active'

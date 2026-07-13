@@ -76,6 +76,28 @@ Produtos
 </th>
 
 
+<th>
+
+
+
+<a class="text-white text-decoration-none"
+href="?sort=products_count&direction={{ request('direction')=='asc'?'desc':'asc' }}">
+
+Tipo
+
+@if(request('sort')=='type')
+
+{{ request('direction')=='asc' ? '▲' : '▼' }}
+
+@endif
+
+</a>
+
+
+
+
+</th>
+
 
 <th>
 
@@ -139,7 +161,37 @@ Status
 
 </td>     
 
+
+<td>
+
+@if($category->type == 'store')
+
+<span class="badge bg-primary">
+
+<i class="bi bi-shop"></i>
+
+Loja
+
+</span>
+
+@else
+
+<span class="badge bg-success">
+
+<i class="bi bi-file-earmark-richtext"></i>
+
+CMS
+
+</span>
+
+@endif
+
+</td>
+
+
        <td>
+
+
 
                 @if($category->active)
 
@@ -161,32 +213,36 @@ Status
 
             </td>
 
-            <td>
+  <td>
 
-                <a href="{{ route('categories.edit',$category) }}"
-                   class="btn btn-warning btn-sm">
+                                <a
+                                    href="{{ route('categories.edit',$category) }}"
+                                    class="btn btn-sm btn-outline-primary">
 
-                    Editar
+                                    <i class="bi bi-pencil"></i>
 
-                </a>
+                                </a>
+<form
+action="{{ route('categories.destroy',$category) }}"
+method="POST"
+class="d-inline"
+onsubmit="return confirm('Deseja realmente excluir esta categoria?')">
 
-                <form method="POST"
-                      action="{{ route('categories.destroy',$category) }}"
-                      class="d-inline"
-                      onsubmit="return confirm('Excluir categoria?')">
+@csrf
+@method('DELETE')
 
-                    @csrf
-                    @method('DELETE')
+<button class="btn btn-sm btn-danger">
 
-                    <button class="btn btn-danger btn-sm">
+<i class="bi bi-trash"></i>
 
-                        Excluir
+</button>
 
-                    </button>
+</form>
 
-                </form>
 
-            </td>
+                            </td>
+
+
 
         </tr>
 

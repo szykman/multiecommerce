@@ -1,0 +1,126 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use App\Models\Store;
+use App\Models\StoreSetting;
+
+class StoreSettingsController extends Controller
+{
+    public function edit()
+    {
+        $store = Store::findOrFail(
+            auth()->user()->store_id
+        );
+
+        $settings = StoreSetting::firstOrCreate([
+            'store_id' => $store->id
+        ]);
+
+        return view(
+            'admin.settings.edit',
+            compact(
+                'store',
+                'settings'
+            )
+        );
+    }
+
+
+
+public function update(Request $request)
+{
+    $store = Store::findOrFail(
+        auth()->user()->store_id
+    );
+
+
+    $settings = StoreSetting::firstOrCreate([
+        'store_id'=>$store->id
+    ]);
+
+
+    $data = $request->except([
+        '_token',
+        '_method',
+        'logo',
+        'banner',
+        'favicon',
+        'name'
+    ]);
+
+
+
+    if($request->hasFile('logo')){
+
+        $data['logo'] =
+            $request->file('logo')
+            ->store('settings','public');
+
+    }
+
+
+
+    if($request->hasFile('banner')){
+
+        $data['banner'] =
+            $request->file('banner')
+            ->store('settings','public');
+
+    }
+
+
+
+    if($request->hasFile('favicon')){
+
+        $data['favicon'] =
+            $request->file('favicon')
+            ->store('settings','public');
+
+    }
+
+
+
+    // grava campos normais da tabela
+
+    $settings->update($data);
+
+
+
+    // mantém JSON para futuro
+
+    if($request->has('settings')){
+
+        $settings->settings =
+            array_merge(
+                $settings->settings ?? [],
+                $request->settings
+            );
+
+        $settings->save();
+
+    }
+
+
+
+    // nome pertence a tabela stores
+
+    $store->name =
+        $request->name;
+
+    $store->save();
+
+
+
+    return redirect()
+        ->route('settings.edit')
+        ->with(
+            'success',
+            'Configurações salvas.'
+        );
+}
+
+
+}

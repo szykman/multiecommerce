@@ -80,6 +80,34 @@
 
                 </div>
 
+<div class="mb-3">
+
+<label class="form-label">
+
+Tipo
+
+</label>
+
+<select
+name="type"
+class="form-select">
+
+<option value="store">
+
+Loja Virtual
+
+</option>
+
+<option value="cms">
+
+Página CMS
+
+</option>
+
+</select>
+
+</div>
+
                 <button
                     type="submit"
                     class="btn btn-success">

@@ -1,0 +1,350 @@
+@extends('admin.layouts.app')
+
+@section('content')
+
+<div class="container">
+
+<h2 class="mb-4">
+    Configurações da Loja
+</h2>
+
+<form
+method="POST"
+action="{{ route('settings.update') }}"
+enctype="multipart/form-data">
+
+@csrf
+@method('PUT')
+
+<ul class="nav nav-tabs mb-4" role="tablist">
+
+<li class="nav-item">
+<a class="nav-link active"
+data-bs-toggle="tab"
+href="#geral">
+<i class="bi bi-shop"></i>
+Geral
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link"
+data-bs-toggle="tab"
+href="#aparencia">
+<i class="bi bi-palette"></i>
+Aparência
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link"
+data-bs-toggle="tab"
+href="#contato">
+<i class="bi bi-telephone"></i>
+Contato
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link"
+data-bs-toggle="tab"
+href="#social">
+<i class="bi bi-share"></i>
+Redes Sociais
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link"
+data-bs-toggle="tab"
+href="#seo">
+<i class="bi bi-google"></i>
+SEO
+</a>
+</li>
+
+<li class="nav-item">
+<a class="nav-link"
+data-bs-toggle="tab"
+href="#footer">
+<i class="bi bi-layout-text-window"></i>
+Rodapé
+</a>
+</li>
+
+</ul>
+
+<div class="tab-content">
+
+<div class="tab-pane fade show active" id="geral">
+
+<div class="card mb-4">
+
+<div class="card-body">
+
+<div class="row">
+
+<div class="col-md-6 mb-3">
+<label>Nome da Empresa</label>
+<input
+type="text"
+class="form-control"
+name="name"
+value="{{ $store->name }}">
+</div>
+
+<div class="col-md-6 mb-3">
+<label>E-mail</label>
+<input
+type="email"
+class="form-control"
+name="email">
+</div>
+
+<div class="col-md-4 mb-3">
+<label>Logo</label>
+<input
+type="file"
+class="form-control"
+name="logo">
+</div>
+
+<div class="col-md-4 mb-3">
+<label>Banner</label>
+<input
+type="file"
+class="form-control"
+name="banner">
+</div>
+
+<div class="col-md-4 mb-3">
+<label>Favicon</label>
+<input
+type="file"
+class="form-control"
+name="favicon">
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="tab-pane fade" id="aparencia">
+
+<div class="card">
+
+<div class="card-body">
+
+<div class="row">
+
+<div class="col-md-4">
+
+<label>Cor Primária</label>
+
+<input
+type="color"
+class="form-control form-control-color"
+name="primary_color">
+
+</div>
+
+<div class="col-md-4">
+
+<label>Cor Secundária</label>
+
+<input
+type="color"
+class="form-control form-control-color"
+name="secondary_color">
+
+</div>
+
+<div class="col-md-4">
+
+<label>Bordas</label>
+
+<select
+class="form-select"
+name="radius">
+
+<option value="0">Quadradas</option>
+
+<option value="10">Levemente Arredondadas</option>
+
+<option value="20">Arredondadas</option>
+
+<option value="50">Muito Arredondadas</option>
+
+</select>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="tab-pane fade" id="contato">
+
+<div class="card">
+
+<div class="card-body">
+
+<div class="row">
+
+<div class="col-md-6">
+
+<label>WhatsApp</label>
+
+<input
+class="form-control"
+name="whatsapp">
+
+</div>
+
+<div class="col-md-6">
+
+<label>Telefone</label>
+
+<input
+class="form-control"
+name="phone">
+
+</div>
+
+<div class="col-md-12 mt-3">
+
+<label>Horário</label>
+
+<textarea
+class="form-control"
+rows="3"
+name="hours"></textarea>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="tab-pane fade" id="social">
+
+<div class="card">
+
+<div class="card-body">
+
+<div class="row">
+
+<div class="col-md-6 mb-3">
+<input class="form-control" placeholder="Instagram">
+</div>
+
+<div class="col-md-6 mb-3">
+<input class="form-control" placeholder="Facebook">
+</div>
+
+<div class="col-md-6 mb-3">
+<input class="form-control" placeholder="TikTok">
+</div>
+
+<div class="col-md-6 mb-3">
+<input class="form-control" placeholder="YouTube">
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="tab-pane fade" id="seo">
+
+<div class="card">
+
+<div class="card-body">
+
+<label>Título SEO</label>
+
+<input
+class="form-control mb-3">
+
+<label>Descrição</label>
+
+<textarea
+rows="4"
+class="form-control mb-3"></textarea>
+
+<label>Palavras-chave</label>
+
+<textarea
+rows="3"
+class="form-control"></textarea>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="tab-pane fade" id="footer">
+
+<div class="card">
+
+<div class="card-body">
+
+<label>Google Maps</label>
+
+<textarea
+rows="4"
+class="form-control mb-3"></textarea>
+
+<label>Copyright</label>
+
+<input
+class="form-control mb-3">
+
+<label>Texto Rodapé</label>
+
+<textarea
+rows="5"
+class="form-control"></textarea>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="mt-4">
+
+<button
+class="btn btn-primary btn-lg">
+
+<i class="bi bi-check-circle"></i>
+
+Salvar Configurações
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+@endsection
