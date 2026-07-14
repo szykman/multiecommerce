@@ -107,7 +107,8 @@
 
                             </label>
 
-                            <input
+                            <input 
+				style="width:200px;"
                                 type="number"
                                 step="0.01"
                                 name="price"
@@ -115,6 +116,65 @@
                                 required>
 
                         </div>
+
+<div class="row">
+
+
+<div>
+
+</div>
+
+
+<div class="col-md-4">
+
+<label>Preço Promocional</label>
+
+<input 
+style="width:200px;"
+type="number"
+step="0.01"
+name="sale_price"
+class="form-control"
+value="{{ old('sale_price',$product->sale_price ?? '') }}">
+
+</div>
+
+
+<div>
+
+</div>
+
+
+<div class="col-md-4">
+
+<label>Início Promoção</label>
+
+<input 
+style="width:200px;"
+type="datetime-local"
+name="promotion_start"
+class="form-control"
+value="{{ old('promotion_start') }}">
+</div>
+
+
+<div>
+
+</div>
+
+<div class="col-md-4 mt-3">
+
+<label>Fim Promoção</label>
+
+<input 
+style="width:200px;"
+type="datetime-local"
+name="promotion_end"
+class="form-control"
+value="{{ old('promotion_end') }}">
+</div>
+
+</div>
 
                     </div>
 

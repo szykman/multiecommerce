@@ -206,9 +206,45 @@ class="card-img-top">
 
 <h4 class="text-success">
 
-R$
+@if($product->is_on_sale)
 
+<div>
+
+<small
+class="text-muted text-decoration-line-through">
+
+R$
 {{ number_format($product->price,2,',','.') }}
+
+</small>
+
+</div>
+
+<div
+class="fw-bold text-danger fs-4">
+
+R$
+{{ number_format($product->current_price,2,',','.') }}
+
+</div>
+
+<span class="badge bg-danger">
+
+-{{ $product->discount_percent }}%
+
+</span>
+
+@else
+
+<div
+class="fw-bold fs-4">
+
+R$
+{{ number_format($product->price,2,',','.') }}
+
+</div>
+
+@endif
 
 </h4>
 

@@ -24,6 +24,9 @@ class MediaController extends Controller
         );
     }
 
+
+
+
     public function create()
     {
         return view('admin.media.create');
@@ -36,6 +39,24 @@ class MediaController extends Controller
         ]);
 
         foreach ($request->file('files', []) as $file) {
+
+$exists = Media::where(
+    'store_id',
+    auth()->user()->store_id
+)
+->where('name', pathinfo(
+    $file->getClientOriginalName(),
+    PATHINFO_FILENAME
+))
+->where('size', $file->getSize())
+->exists();
+
+
+if($exists){
+
+    continue;
+
+}
 
             $path = $file->store('media', 'public');
 
@@ -65,8 +86,68 @@ class MediaController extends Controller
             ]);
         }
 
-        return redirect()
-            ->route('media.index')
-            ->with('success', 'Arquivos enviados.');
+return response()->json([
+    'success'=>true
+]);
+
     }
+
+
+public function upload(Request $request)
+{
+
+    $request->validate([
+
+        'files.*'=>'required|file|max:51200'
+
+    ]);
+
+
+    foreach($request->file('files') as $file){
+
+
+        $path=$file->store(
+            'media',
+            'public'
+        );
+
+
+        Media::create([
+
+            'store_id'=>auth()->user()->store_id,
+
+            'name'=>$file->getClientOriginalName(),
+
+            'file'=>$path,
+
+            'type'=>explode(
+                '/',
+                $file->getMimeType()
+            )[0],
+
+            'mime'=>$file->getMimeType(),
+
+            'extension'=>$file->extension(),
+
+            'size'=>$file->getSize(),
+
+            'folder'=>'Geral'
+
+        ]);
+
+    }
+
+
+    return response()->json([
+
+        'success'=>true
+
+    ]);
+
+}
+
+
+public function destroy(Media $media) { abort_if( $media->store_id != auth()->user()->store_id, 403 ); Storage::disk('public') ->delete($media->file); $media->delete(); return redirect() ->route('media.index') ->with( 'success', 'Arquivo excluído.' ); }
+
+
 }

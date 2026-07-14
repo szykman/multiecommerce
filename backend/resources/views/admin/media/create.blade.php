@@ -12,92 +12,92 @@ Enviar Arquivos
 
 </h2>
 
+
 <div class="card">
 
 <div class="card-body">
 
-<form
-method="POST"
-action="{{ route('media.store') }}"
-enctype="multipart/form-data">
 
-@csrf
+<div id="drop-area"
+class="border border-2 rounded p-5 text-center">
 
-<div class="mb-3">
 
-<label>
+<i class="bi bi-cloud-arrow-up fs-1"></i>
 
-Pasta
 
-</label>
+<h5 class="mt-3">
 
-<select
-class="form-select"
-name="folder">
+Arraste arquivos aqui
 
-<option>Geral</option>
+</h5>
 
-<option>Produtos</option>
 
-<option>Categorias</option>
+<p class="text-muted">
 
-<option>CMS</option>
+ou clique para selecionar
 
-<option>Banner</option>
+</p>
 
-<option>Logo</option>
-
-<option>Downloads</option>
-
-</select>
-
-</div>
-
-<div class="mb-4">
-
-<label>
-
-Arquivos
-
-</label>
 
 <input
 type="file"
-class="form-control"
-name="files[]"
-multiple>
+id="file-input"
+multiple
+hidden>
 
-<div class="form-text">
-
-Pode selecionar vários arquivos.
-
-</div>
-
-</div>
 
 <button
+type="button"
+id="select-files"
 class="btn btn-primary">
 
-<i class="bi bi-cloud-upload"></i>
+Selecionar Arquivos
+
+</button>
+
+
+</div>
+
+
+
+<div id="preview"
+class="row mt-4">
+
+</div>
+
+
+
+<div class="mt-4">
+
+<button
+id="upload-btn"
+class="btn btn-success"
+disabled>
+
+<i class="bi bi-upload"></i>
 
 Enviar
 
 </button>
 
-<a
-href="{{ route('media.index') }}"
-class="btn btn-secondary">
+</div>
 
-Cancelar
 
-</a>
+<div id="progress"
+class="mt-3">
 
-</form>
+</div>
+
 
 </div>
 
 </div>
 
+
 </div>
+
+
+<script src="{{ asset('js/admin/media-upload.js') }}"></script>
+
 
 @endsection

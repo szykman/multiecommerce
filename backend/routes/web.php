@@ -5,7 +5,7 @@ use App\Http\Controllers\StoreController;
 use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProductController;
-
+use App\Http\Controllers\Admin\MediaController;
 
 Route::get('/tenant-test', function (TenantManager $tenant) {
     return [
@@ -105,9 +105,19 @@ Route::middleware(['auth'])
         Route::resource(
             'media',
             \App\Http\Controllers\Admin\MediaController::class
-        );
+        )->parameters([
+            'media' => 'media',
+        ]);
 
 });
+
+Route::post(
+    '/admin/media/upload',
+    [MediaController::class,'store']
+)
+->name('media.upload');
+
+
     // Futuras rotas:
     // Route::get('/produto/{slug}', ...);
     // Route::get('/carrinho', ...);

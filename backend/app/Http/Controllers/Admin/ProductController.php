@@ -132,6 +132,9 @@ $data = $request->validate([
     'stock' => 'required|integer',
     'category_id' => 'nullable|exists:categories,id',
     'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+'sale_price'=>'nullable|numeric|min:0',
+'promotion_start'=>'nullable|date',
+'promotion_end'=>'nullable|date|after_or_equal:promotion_start',
 ]);
 
     if ($request->hasFile('image')) {
@@ -162,7 +165,10 @@ $data = $request->validate([
             'price' => 'required|numeric',
             'stock' => 'required|integer',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-        ]);
+'sale_price' => 'nullable|numeric|min:0',
+'promotion_start' => 'nullable|date',
+'promotion_end' => 'nullable|date|after_or_equal:promotion_start',       
+ ]);
 
         $image = null;
 
@@ -180,6 +186,9 @@ Product::create([
     'stock' => $data['stock'],
     'image' => $image,
     'active' => true,
+'sale_price' => $data['sale_price'] ?? null,
+'promotion_start' => $data['promotion_start'] ?? null,
+'promotion_end' => $data['promotion_end'] ?? null,
 ]);
         return redirect('/admin/products')
             ->with('success', 'Produto cadastrado com sucesso.');

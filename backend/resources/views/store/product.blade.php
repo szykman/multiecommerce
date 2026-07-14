@@ -60,6 +60,7 @@ src="{{ asset('storage/'.$product->image) }}">
 
 </h1>
 
+
 <div class="mb-3">
 
 @if($product->stock > 0)
@@ -86,7 +87,44 @@ Produto indisponível
 
 <h2 class="text-primary mb-4">
 
-R$ {{ number_format($product->price,2,',','.') }}
+@if($product->is_on_sale)
+
+<h5>
+
+<span
+class="text-decoration-line-through text-muted">
+
+R$
+{{ number_format($product->price,2,',','.') }}
+
+</span>
+
+</h5>
+
+<h2 class="text-danger">
+
+R$
+{{ number_format($product->current_price,2,',','.') }}
+
+</h2>
+
+<span class="badge bg-danger">
+
+Economize
+{{ $product->discount_percent }}%
+
+</span>
+
+@else
+
+<h2>
+
+R$
+{{ number_format($product->price,2,',','.') }}
+
+</h2>
+
+@endif
 
 </h2>
 
@@ -108,23 +146,6 @@ style="max-width:120px;">
 </div>
 
 
-@if($product->stock>0)
-
-<span class="badge bg-success">
-
-Em estoque
-
-</span>
-
-@else
-
-<span class="badge bg-danger">
-
-Indisponível
-
-</span>
-
-@endif
 
 <hr>
 
