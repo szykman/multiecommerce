@@ -4,11 +4,21 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Media;
 use App\Models\Product;
+use App\Services\MediaService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PageController extends Controller
 {
+    protected MediaService $mediaService;
+
+    public function __construct(MediaService $mediaService)
+    {
+        $this->mediaService = $mediaService;
+    }
+
     public function index()
     {
         $categories = Category::where(
@@ -17,11 +27,13 @@ class PageController extends Controller
         )
         ->where('type','cms')
         ->where('active',1)
-        ->with(['products' => function($q){
+        ->with([
+            'products' => function($q){
 
-            $q->orderBy('name');
+                $q->orderBy('name');
 
-        }])
+            }
+        ])
         ->orderBy('name')
         ->get();
 
@@ -33,28 +45,38 @@ class PageController extends Controller
 
     public function create()
     {
+        $categories = Category::where(
+            'store_id',
+            auth()->user()->store_id
+        )
+        ->where('type','cms')
+        ->where('active',1)
+        ->orderBy('name')
+        ->get();
 
-    $categories = Category::where(
-        'store_id',
-        auth()->user()->store_id
-    )
-    ->where('type','cms')
-    ->where('active',1)
-    ->orderBy('name')
-    ->get();
+        $media = Media::where(
+            'store_id',
+            auth()->user()->store_id
+        )
+        ->latest()
+        ->get();
 
-    return view(
-        'admin.pages.create',
-        compact('categories')
-    );
-}
+        return view(
+            'admin.pages.create',
+            compact(
+                'categories',
+                'media'
+            )
+        );
+    }
 
-    public function store(Request $request)
-    {
-
+public function store(Request $request)
+{
     $data = $request->validate([
 
         'category_id' => 'required|exists:categories,id',
+
+        'media_id' => 'nullable|exists:media,id',
 
         'name' => 'required|max:255',
 
@@ -68,11 +90,52 @@ class PageController extends Controller
 
     $image = null;
 
-    if($request->hasFile('image')){
+    $mediaId = null;
 
-        $image = $request
-            ->file('image')
-            ->store('products','public');
+    /*
+    |--------------------------------------------------------------------------
+    | Biblioteca
+    |--------------------------------------------------------------------------
+    */
+
+    if ($request->filled('media_id')) {
+
+        $media = Media::where(
+            'store_id',
+            auth()->user()->store_id
+        )->find($request->media_id);
+
+        if ($media) {
+
+            $mediaId = $media->id;
+
+            $image = $media->file;
+
+        }
+
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Upload
+    |--------------------------------------------------------------------------
+    */
+
+    elseif ($request->hasFile('image')) {
+
+        $media = $this->mediaService->store(
+
+            $request->file('image'),
+
+            auth()->user()->store_id,
+
+            'CMS'
+
+        );
+
+        $mediaId = $media->id;
+
+        $image = $media->file;
 
     }
 
@@ -82,9 +145,11 @@ class PageController extends Controller
 
         'category_id' => $data['category_id'],
 
+        'media_id' => $mediaId,
+
         'name' => $data['name'],
 
-        'slug' => \Illuminate\Support\Str::slug($data['name']),
+        'slug' => Str::slug($data['name']),
 
         'description' => $data['description'],
 
@@ -94,26 +159,20 @@ class PageController extends Controller
 
         'stock' => 0,
 
-        'weight' => 0,
-
         'active' => $request->boolean('active')
 
     ]);
 
     return redirect()
         ->route('pages.index')
-        ->with('success','Página criada com sucesso.');
+        ->with(
+            'success',
+            'Página criada com sucesso.'
+        );
+}
 
-    }
-
-    public function show(string $id)
-    {
-        //
-    }
-
-    public function edit(Product $page)
-    {
-
+public function edit(Product $page)
+{
     abort_if(
         $page->store_id != auth()->user()->store_id,
         403
@@ -128,19 +187,25 @@ class PageController extends Controller
     ->orderBy('name')
     ->get();
 
+    $media = Media::where(
+        'store_id',
+        auth()->user()->store_id
+    )
+    ->latest()
+    ->get();
+
     return view(
         'admin.pages.edit',
         compact(
             'page',
-            'categories'
+            'categories',
+            'media'
         )
     );
-        //
-    }
+}
 
-    public function update(Request $request, Product $page)
-    {
- 
+public function update(Request $request, Product $page)
+{
     abort_if(
         $page->store_id != auth()->user()->store_id,
         403
@@ -148,48 +213,129 @@ class PageController extends Controller
 
     $data = $request->validate([
 
-        'category_id'=>'required|exists:categories,id',
+        'category_id' => 'required|exists:categories,id',
 
-        'name'=>'required|max:255',
+        'media_id' => 'nullable|exists:media,id',
 
-        'description'=>'nullable',
+        'name' => 'required|max:255',
 
-        'image'=>'nullable|image|max:4096'
+        'description' => 'nullable',
+
+        'image' => 'nullable|image|max:4096',
+
+        'active' => 'nullable'
 
     ]);
 
-    if($request->hasFile('image')){
+    /*
+    |--------------------------------------------------------------------------
+    | Biblioteca
+    |--------------------------------------------------------------------------
+    */
 
-        $data['image']=$request
-            ->file('image')
-            ->store('products','public');
+    if ($request->filled('media_id')) {
+
+        $media = Media::where(
+            'store_id',
+            auth()->user()->store_id
+        )->find($request->media_id);
+
+        if ($media) {
+
+            $data['media_id'] = $media->id;
+
+            $data['image'] = $media->file;
+
+        }
+
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Upload
+    |--------------------------------------------------------------------------
+    */
+
+    elseif ($request->hasFile('image')) {
+
+        $media = $this->mediaService->store(
+
+            $request->file('image'),
+
+            auth()->user()->store_id,
+
+            'CMS'
+
+        );
+
+        $data['media_id'] = $media->id;
+
+        $data['image'] = $media->file;
 
     }
 
     $page->update([
 
-        'category_id'=>$data['category_id'],
+        'category_id' => $data['category_id'],
 
-        'name'=>$data['name'],
+        'media_id' => $data['media_id'] ?? $page->media_id,
 
-        'slug'=>\Illuminate\Support\Str::slug($data['name']),
+        'name' => $data['name'],
 
-        'description'=>$data['description'],
+        'slug' => Str::slug($data['name']),
 
-        'image'=>$data['image'] ?? $page->image,
+        'description' => $data['description'],
 
-        'active'=>$request->boolean('active')
+        'image' => $data['image'] ?? $page->image,
+
+        'active' => $request->boolean('active')
 
     ]);
 
     return redirect()
         ->route('pages.index')
-        ->with('success','Página atualizada.');
-       //
+        ->with(
+            'success',
+            'Página atualizada.'
+        );
+}
+
+public function destroy(Product $page)
+{
+    abort_if(
+        $page->store_id != auth()->user()->store_id,
+        403
+    );
+
+    /*
+    |--------------------------------------------------------------------------
+    | Só remove arquivo físico se NÃO pertence à biblioteca
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+
+        !$page->media_id &&
+
+        $page->image &&
+
+        \Storage::disk('public')->exists($page->image)
+
+    ) {
+
+        \Storage::disk('public')->delete($page->image);
+
     }
 
-    public function destroy(string $id)
-    {
-        //
-    }
+    $page->delete();
+
+    return redirect()
+        ->route('pages.index')
+        ->with(
+            'success',
+            'Página removida.'
+        );
 }
+
+}
+

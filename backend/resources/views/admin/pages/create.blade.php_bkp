@@ -33,7 +33,7 @@ enctype="multipart/form-data">
 
 <label class="form-label">
 
-<b>Categoria CMS</b>
+Categoria CMS
 
 </label>
 
@@ -50,9 +50,7 @@ Selecione
 
 @foreach($categories as $category)
 
-<option
-value="{{ $category->id }}"
-{{ old('category_id') == $category->id ? 'selected' : '' }}>
+<option value="{{ $category->id }}">
 
 {{ $category->name }}
 
@@ -68,7 +66,7 @@ value="{{ $category->id }}"
 
 <label class="form-label">
 
-<b>Título</b>
+Título
 
 </label>
 
@@ -76,7 +74,6 @@ value="{{ $category->id }}"
 type="text"
 name="name"
 class="form-control"
-value="{{ old('name') }}"
 required>
 
 </div>
@@ -85,34 +82,14 @@ required>
 
 <label class="form-label">
 
-<b>Imagem de Capa</b>
+Imagem de Capa
 
 </label>
-
-<div id="media_preview"></div>
 
 <input
 type="file"
 name="image"
-class="form-control mb-2"
-onchange="previewLocalImage(event)">
-
-<button
-type="button"
-class="btn btn-outline-primary"
-onclick="openMediaPicker('image')">
-
-<i class="bi bi-images"></i>
-
-<b>Biblioteca de Mídia</b>
-
-</button>
-
-<input
-type="hidden"
-name="media_id"
-id="media_id"
-value="{{ old('media_id') }}">
+class="form-control">
 
 </div>
 
@@ -120,14 +97,14 @@ value="{{ old('media_id') }}">
 
 <label class="form-label">
 
-<b>Conteúdo</b>
+Conteúdo
 
 </label>
 
 <textarea
 name="description"
 rows="12"
-class="form-control">{{ old('description') }}</textarea>
+class="form-control"></textarea>
 
 </div>
 
@@ -142,7 +119,7 @@ class="form-check-input">
 
 <label class="form-check-label">
 
-<b>Publicar página</b>
+Publicar página
 
 </label>
 
@@ -161,37 +138,5 @@ Salvar Página
 </form>
 
 </div>
-
-@include('admin.media.modal')
-
-<script>
-
-function previewLocalImage(event){
-
-    document.getElementById('media_id').value='';
-
-    const file = event.target.files[0];
-
-    if(!file){
-        return;
-    }
-
-    const preview = document.getElementById('media_preview');
-
-    preview.innerHTML='';
-
-    const img = document.createElement('img');
-
-    img.src = URL.createObjectURL(file);
-
-    img.className='img-thumbnail';
-
-    img.style.maxWidth='220px';
-
-    preview.appendChild(img);
-
-}
-
-</script>
 
 @endsection

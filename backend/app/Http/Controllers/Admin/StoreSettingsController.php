@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Store;
 use App\Models\StoreSetting;
+use App\Models\Media;
 
 class StoreSettingsController extends Controller
 {
@@ -19,11 +20,20 @@ class StoreSettingsController extends Controller
             'store_id' => $store->id
         ]);
 
+
+$media = Media::where(
+    'store_id',
+    $store->id
+)
+->latest()
+->get();
+
         return view(
             'admin.settings.edit',
             compact(
                 'store',
-                'settings'
+                'settings',
+  'media'
             )
         );
     }
@@ -53,34 +63,86 @@ public function update(Request $request)
 
 
 
-    if($request->hasFile('logo')){
+if($request->hasFile('logo')){
 
-        $data['logo'] =
-            $request->file('logo')
-            ->store('settings','public');
+    $media = $this->storeMedia(
+        $request->file('logo')
+    );
+
+    $data['logo'] = $media->file;
+
+}
+
+
+ 
+if($request->hasFile('banner')){
+
+    $media = $this->storeMedia(
+        $request->file('banner')
+    );
+
+    $data['banner'] = $media->file;
+
+}
+
+
+
+if($request->hasFile('favicon')){
+
+    $media = $this->storeMedia(
+        $request->file('favicon')
+    );
+
+    $data['favicon'] = $media->file;
+
+}
+
+
+// Biblioteca de mídia
+
+if($request->logo_media_id){
+
+    $media = Media::where('id',$request->logo_media_id)
+        ->where('store_id',$store->id)
+        ->first();
+
+    if($media){
+
+        $data['logo'] = $media->file;
 
     }
 
+}
 
 
-    if($request->hasFile('banner')){
+if($request->banner_media_id){
 
-        $data['banner'] =
-            $request->file('banner')
-            ->store('settings','public');
+    $media = Media::where('id',$request->banner_media_id)
+        ->where('store_id',$store->id)
+        ->first();
 
-    }
+    if($media){
 
-
-
-    if($request->hasFile('favicon')){
-
-        $data['favicon'] =
-            $request->file('favicon')
-            ->store('settings','public');
+        $data['banner'] = $media->file;
 
     }
 
+}
+
+
+if($request->favicon_media_id){
+
+    $media = Media::where('id',$request->favicon_media_id)
+        ->where('store_id',$store->id)
+        ->first();
+
+    if($media){
+
+        $data['favicon'] = $media->file;
+
+    }
+
+}
 
 
     // grava campos normais da tabela
@@ -121,6 +183,40 @@ public function update(Request $request)
             'Configurações salvas.'
         );
 }
+
+
+
+private function storeMedia($file)
+{
+    $path = $file->store('media', 'public');
+
+    return Media::create([
+
+        'store_id'  => auth()->user()->store_id,
+
+        'name'      => pathinfo(
+            $file->getClientOriginalName(),
+            PATHINFO_FILENAME
+        ),
+
+        'file'      => $path,
+
+        'type'      => explode(
+            '/',
+            $file->getMimeType()
+        )[0],
+
+        'mime'      => $file->getMimeType(),
+
+        'extension' => $file->extension(),
+
+        'size'      => $file->getSize(),
+
+        'folder'    => 'Geral',
+
+    ]);
+}
+
 
 
 }

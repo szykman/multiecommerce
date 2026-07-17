@@ -2,121 +2,140 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Services\MediaService;
 use App\Http\Controllers\Controller;
+use App\Models\Category;
+use App\Models\Media;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
 
-public function index(Request $request)
-{
-    $categories = \App\Models\Category::where(
-        'store_id',
-        auth()->user()->store_id
-    )
-    ->orderBy('name')
-    ->get();
+   protected MediaService $mediaService;
 
-    $products = Product::where(
+    public function __construct(MediaService $mediaService)
+    {
+        $this->mediaService = $mediaService;
+    }
+
+    public function index(Request $request)
+    {
+        $categories = Category::where(
             'store_id',
             auth()->user()->store_id
         )
+        ->orderBy('name')
+        ->get();
 
-->whereHas('category',function($q){
+        $products = Product::where(
+                'store_id',
+                auth()->user()->store_id
+            )
+            ->whereHas('category', function ($q) {
 
-    $q->where('type','store');
+                $q->where('type', 'store');
 
-})
-        ->with('category')
+            })
+            ->with('category')
 
-        ->when($request->search, function ($query) use ($request) {
+            ->when($request->search, function ($query) use ($request) {
 
-            $query->where(
-                'name',
-                'like',
-                '%'.$request->search.'%'
-            );
+                $query->where(
+                    'name',
+                    'like',
+                    '%' . $request->search . '%'
+                );
 
-        })
-->whereHas('category', function($q){
+            })
 
-    $q->where('type','store');
+            ->when($request->category_id, function ($query) use ($request) {
 
-})
-        ->when($request->category_id, function ($query) use ($request) {
+                $query->where(
+                    'category_id',
+                    $request->category_id
+                );
 
-            $query->where(
-                'category_id',
-                $request->category_id
-            );
+            })
 
-        })
+            ->orderBy(
+                $request->get('sort', 'id'),
+                $request->get('direction', 'desc')
+            )
 
-     //  ->latest()
-       ->orderBy(
+            ->paginate(10)
+            ->withQueryString();
 
-    $request->get('sort', 'id'),
+        return view(
+            'admin.products.index',
+            compact(
+                'products',
+                'categories'
+            )
+        );
+    }
 
-    $request->get('direction', 'desc')
-
-)
-	->paginate(10)
-        ->withQueryString();
-
-    return view(
-        'admin.products.index',
-        compact(
-            'products',
-            'categories'
+    public function create()
+    {
+        $categories = Category::where(
+            'store_id',
+            auth()->user()->store_id
         )
-    );
-}
+            ->where('active', 1)
+            ->where('type', 'store')
+            ->orderBy('name')
+            ->get();
 
+        $media = Media::where(
+            'store_id',
+            auth()->user()->store_id
+        )
+            ->latest()
+            ->get();
 
+        return view(
+            'admin.products.create',
+            compact(
+                'categories',
+                'media'
+            )
+        );
+    }
 
-  
-public function create()
-{
-    $categories = \App\Models\Category::where(
-        'store_id',
-        auth()->user()->store_id
-    )
-->where('active',1)
-->where('type','store')
-    ->orderBy('name')
-    ->get();
+    public function edit(Product $product)
+    {
+        abort_if(
+            $product->store_id != auth()->user()->store_id,
+            403
+        );
 
-    return view(
-        'admin.products.create',
-        compact('categories')
-    );
-}
+        $categories = Category::where(
+            'store_id',
+            auth()->user()->store_id
+        )
+            ->where('active', 1)
+            ->where('type', 'store')
+            ->orderBy('name')
+            ->get();
 
+        $media = Media::where(
+            'store_id',
+            auth()->user()->store_id
+        )
+            ->latest()
+            ->get();
 
-
-public function edit(Product $product)
-{
-    abort_if(
-        $product->store_id != auth()->user()->store_id,
-        403
-    );
-
-   $categories = \App\Models\Category::where(
-       'store_id',
-       auth()->user()->store_id
-   )
-->where('active',1)
-->where('type','store')
-->orderBy('name')
-->get();
-
-    return view(
-       'admin.products.edit',
-      compact('product', 'categories')
-  );
-}
+        return view(
+            'admin.products.edit',
+            compact(
+                'product',
+                'categories',
+                'media'
+            )
+        );
+    }
 
 public function update(Request $request, Product $product)
 {
@@ -125,75 +144,193 @@ public function update(Request $request, Product $product)
         403
     );
 
-$data = $request->validate([
-    'name' => 'required|string|max:255',
-    'description' => 'nullable|string',
-    'price' => 'required|numeric',
-    'stock' => 'required|integer',
-    'category_id' => 'nullable|exists:categories,id',
-    'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-'sale_price'=>'nullable|numeric|min:0',
-'promotion_start'=>'nullable|date',
-'promotion_end'=>'nullable|date|after_or_equal:promotion_start',
-]);
+    $data = $request->validate([
 
-    if ($request->hasFile('image')) {
+        'category_id'      => 'nullable|exists:categories,id',
+        'media_id'         => 'nullable|exists:media,id',
 
-        if ($product->image && \Storage::disk('public')->exists($product->image)) {
-            \Storage::disk('public')->delete($product->image);
+        'name'             => 'required|max:255',
+        'description'      => 'nullable|string',
+
+        'price'            => 'required|numeric',
+        'sale_price'       => 'nullable|numeric|min:0',
+
+        'promotion_start'  => 'nullable|date',
+        'promotion_end'    => 'nullable|date|after_or_equal:promotion_start',
+
+        'stock'            => 'required|integer',
+
+        'image'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+
+    ]);
+
+    /*
+    |----------------------------------------------------------
+    | Biblioteca
+    |----------------------------------------------------------
+    */
+
+    if ($request->filled('media_id')) {
+
+        $media = Media::where(
+            'store_id',
+            auth()->user()->store_id
+        )
+        ->find($request->media_id);
+
+        if ($media) {
+
+            $data['media_id'] = $media->id;
+            $data['image'] = $media->file;
+
         }
 
-        $data['image'] = $request->file('image')
-            ->store('products', 'public');
     }
 
-    $data['slug'] = \Str::slug($data['name']);
+    /*
+    |----------------------------------------------------------
+    | Upload
+    |----------------------------------------------------------
+    */
+
+    elseif ($request->hasFile('image')) {
+
+$media = $this->mediaService->store(
+
+    $request->file('image'),
+
+    auth()->user()->store_id,
+
+    'Produtos'
+
+);
+        $data['media_id'] = $media->id;
+        $data['image'] = $media->file;
+
+    }
+
+    $data['slug'] = Str::slug(
+        $data['name']
+    );
 
     $product->update($data);
 
     return redirect()
         ->route('products.index')
-        ->with('success', 'Produto atualizado com sucesso.');
+        ->with(
+            'success',
+            'Produto atualizado com sucesso.'
+        );
 }
 
-    public function store(Request $request)
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-'category_id' => 'nullable|exists:categories,id',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            'stock' => 'required|integer',
-            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-'sale_price' => 'nullable|numeric|min:0',
-'promotion_start' => 'nullable|date',
-'promotion_end' => 'nullable|date|after_or_equal:promotion_start',       
- ]);
+public function store(Request $request)
+{
+    $data = $request->validate([
 
-        $image = null;
+        'category_id'      => 'nullable|exists:categories,id',
+        'media_id'         => 'nullable|exists:media,id',
 
-        if ($request->hasFile('image')) {
-            $image = $request->file('image')->store('products', 'public');
+        'name'             => 'required|max:255',
+        'description'      => 'nullable|string',
+
+        'price'            => 'required|numeric',
+        'sale_price'       => 'nullable|numeric|min:0',
+
+        'promotion_start'  => 'nullable|date',
+        'promotion_end'    => 'nullable|date|after_or_equal:promotion_start',
+
+        'stock'            => 'required|integer',
+
+        'image'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+
+    ]);
+
+    $image = null;
+
+    $mediaId = null;
+
+    /*
+    |----------------------------------------------------------
+    | Biblioteca
+    |----------------------------------------------------------
+    */
+
+    if ($request->filled('media_id')) {
+
+        $media = Media::where(
+            'store_id',
+            auth()->user()->store_id
+        )
+        ->find($request->media_id);
+
+        if ($media) {
+
+            $mediaId = $media->id;
+            $image = $media->file;
+
         }
 
-Product::create([
-    'store_id' => auth()->user()->store_id,
-    'category_id' => $data['category_id'] ?? null,
-    'name' => $data['name'],
-    'slug' => Str::slug($data['name']),
-    'description' => $data['description'] ?? null,
-    'price' => $data['price'],
-    'stock' => $data['stock'],
-    'image' => $image,
-    'active' => true,
-'sale_price' => $data['sale_price'] ?? null,
-'promotion_start' => $data['promotion_start'] ?? null,
-'promotion_end' => $data['promotion_end'] ?? null,
-]);
-        return redirect('/admin/products')
-            ->with('success', 'Produto cadastrado com sucesso.');
     }
 
+    /*
+    |----------------------------------------------------------
+    | Upload
+    |----------------------------------------------------------
+    */
+
+    elseif ($request->hasFile('image')) {
+
+$media = $this->mediaService->store(
+
+    $request->file('image'),
+
+    auth()->user()->store_id,
+
+    'Produtos'
+
+);
+        $mediaId = $media->id;
+        $image = $media->file;
+
+    }
+
+    Product::create([
+
+        'store_id'         => auth()->user()->store_id,
+
+        'category_id'      => $data['category_id'],
+
+        'media_id'         => $mediaId,
+
+        'name'             => $data['name'],
+
+        'slug'             => Str::slug($data['name']),
+
+        'description'      => $data['description'] ?? null,
+
+        'image'            => $image,
+
+        'price'            => $data['price'],
+
+        'sale_price'       => $data['sale_price'] ?? null,
+
+        'promotion_start'  => $data['promotion_start'] ?? null,
+
+        'promotion_end'    => $data['promotion_end'] ?? null,
+
+        'stock'            => $data['stock'],
+
+        'active'           => true,
+
+    ]);
+
+    return redirect()
+        ->route('products.index')
+        ->with(
+            'success',
+            'Produto cadastrado com sucesso.'
+        );
+}
 
 public function destroy(Product $product)
 {
@@ -202,7 +339,14 @@ public function destroy(Product $product)
         403
     );
 
+    /*
+     |----------------------------------------------------------
+     | Só apaga o arquivo físico se ele NÃO vier da biblioteca.
+     | Se existir media_id, o arquivo pertence à biblioteca.
+     |----------------------------------------------------------
+     */
     if (
+        !$product->media_id &&
         $product->image &&
         \Storage::disk('public')->exists($product->image)
     ) {
@@ -213,7 +357,10 @@ public function destroy(Product $product)
 
     return redirect()
         ->route('products.index')
-        ->with('success', 'Produto excluído com sucesso.');
+        ->with(
+            'success',
+            'Produto excluído com sucesso.'
+        );
 }
 
 public function toggle(Product $product)

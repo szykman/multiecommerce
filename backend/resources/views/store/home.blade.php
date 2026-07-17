@@ -198,6 +198,14 @@ class="card-img-top">
 
 </h5>
 
+<button 
+class="favorite-btn"
+type="button">
+
+<i class="bi bi-heart"></i>
+
+</button>
+
 <p class="text-muted small">
 
 {{ Str::limit($product->description,80) }}

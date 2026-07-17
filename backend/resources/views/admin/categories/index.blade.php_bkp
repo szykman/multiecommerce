@@ -81,7 +81,7 @@ Produtos
 
 
 <a class="text-white text-decoration-none"
-href="?sort=type&direction={{ request('direction')=='asc'?'desc':'asc' }}">
+href="?sort=products_count&direction={{ request('direction')=='asc'?'desc':'asc' }}">
 
 Tipo
 
@@ -189,27 +189,29 @@ CMS
 </td>
 
 
-    <td>
-
-<form
-    action="{{ route('categories.toggle', $category) }}"
-    method="POST">
-
-    @csrf
-    @method('PATCH')
+       <td>
 
 
-    <button
-        class="btn btn-sm {{ $category->active ? 'btn-success' : 'btn-secondary' }}">
 
-        {{ $category->active ? 'Ativa' : 'Inativa' }}
+                @if($category->active)
 
-    </button>
+                    <span class="badge bg-success">
 
+                        Ativa
 
-</form>
+                    </span>
 
-</td>
+                @else
+
+                    <span class="badge bg-danger">
+
+                        Inativa
+
+                    </span>
+
+                @endif
+
+            </td>
 
   <td>
 

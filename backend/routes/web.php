@@ -65,6 +65,14 @@ Route::get('/admin', [DashboardController::class, 'index'])
 Route::resource('/admin/categories', CategoryController::class)
     ->middleware(['auth','admin']);
 
+Route::patch(
+    '/admin/categories/{category}/toggle',
+    [CategoryController::class, 'toggle']
+)
+->name('categories.toggle')
+->middleware(['auth','admin']);
+
+
 Route::resource('/admin/products', ProductController::class)
     ->middleware(['auth','admin']);
 

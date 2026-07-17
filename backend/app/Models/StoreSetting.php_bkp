@@ -42,9 +42,6 @@ class StoreSetting extends Model
 'animations',
 
  // mantém para futuras configurações
-'logo_media_id',
-'banner_media_id',
-'favicon_media_id',
 'document',    
 'settings',
     ];

@@ -251,6 +251,47 @@ transform:translateY(-5px);
 
 @endif
 
+.favorite-btn{
+
+background:none;
+border:none;
+font-size:1.8rem;
+color:#777;
+cursor:pointer;
+
+transition:.3s;
+
+}
+
+
+.favorite-btn:hover{
+
+transform:scale(1.15);
+
+}
+
+
+.favorite-btn.active{
+
+color:#dc3545;
+
+}
+
+
+body.dark .favorite-btn{
+
+color:#aaa;
+
+}
+
+
+body.dark .favorite-btn.active{
+
+color:#ff4d5a;
+
+}
+
+
 </style>
 
 </head>
@@ -359,6 +400,40 @@ if(button){
     });
 
 }
+
+
+document.querySelectorAll('.favorite-btn')
+.forEach(button=>{
+
+
+button.addEventListener('click',function(){
+
+
+this.classList.toggle('active');
+
+
+let icon=this.querySelector('i');
+
+
+if(this.classList.contains('active')){
+
+
+icon.className='bi bi-heart-fill';
+
+
+}else{
+
+
+icon.className='bi bi-heart';
+
+
+}
+
+
+});
+
+
+});
 
 
 

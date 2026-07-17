@@ -168,5 +168,24 @@ public function destroy(Category $category)
             'Categoria removida com sucesso.'
         );
 }
+public function toggle(Category $category)
+{
+    abort_if(
+        $category->store_id != auth()->user()->store_id,
+        403
+    );
+
+    $category->update([
+        'active' => !$category->active
+    ]);
+
+    return redirect()
+        ->route('categories.index')
+        ->with(
+            'success',
+            'Status da categoria atualizado.'
+        );
+}
+
 
 }

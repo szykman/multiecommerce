@@ -34,7 +34,7 @@
 
                     <label class="form-label">
 
-<b>                        Categoria CMS</b>
+                        Categoria CMS
 
                     </label>
 
@@ -69,7 +69,7 @@
 
                     <label class="form-label">
 
-                        <b>Título</b>
+                        Título
 
                     </label>
 
@@ -86,28 +86,28 @@
 
                     <label class="form-label">
 
-                       <b>Imagem de Capa</b>
+                        Imagem de Capa
 
                     </label>
 
-<div id="media_preview">
+                    <div id="media_preview" class="mb-2">
 
-@if($page->image_url)
+                        @if($page->image_url)
 
-<img
-src="{{ $page->image_url }}"
-class="img-thumbnail"
-style="max-width:220px">
+                            <img
+                                src="{{ $page->image_url }}"
+                                class="img-thumbnail"
+                                style="max-width:220px">
 
-@endif
+                        @endif
 
-</div>
+                    </div>
 
                     <input
                         type="file"
                         name="image"
                         class="form-control mb-2"
-            	        onchange="previewLocalImage(event)">
+                        onchange="document.getElementById('media_id').value=''">
 
                     <button
                         type="button"
@@ -132,7 +132,7 @@ style="max-width:220px">
 
                     <label class="form-label">
 
-                       <b>Conteúdo</b>
+                        Conteúdo
 
                     </label>
 
@@ -154,7 +154,7 @@ style="max-width:220px">
 
                     <label class="form-check-label">
 
-                        <b>Publicar página</b>
+                        Publicar página
 
                     </label>
 
@@ -177,35 +177,5 @@ style="max-width:220px">
 </div>
 
 @include('admin.media.modal')
-
-<script>
-
-function previewLocalImage(event){
-
-    document.getElementById('media_id').value='';
-
-    const file = event.target.files[0];
-
-    if(!file){
-        return;
-    }
-
-    const preview = document.getElementById('media_preview');
-
-    preview.innerHTML = '';
-
-    const img = document.createElement('img');
-
-    img.src = URL.createObjectURL(file);
-
-    img.className = 'img-thumbnail';
-
-    img.style.maxWidth = '220px';
-
-    preview.appendChild(img);
-
-}
-
-</script>
 
 @endsection

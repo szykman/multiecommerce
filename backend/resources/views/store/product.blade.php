@@ -60,6 +60,14 @@ src="{{ asset('storage/'.$product->image) }}">
 
 </h1>
 
+<button 
+class="favorite-btn"
+type="button">
+
+<i class="bi bi-heart"></i>
+
+</button>
+
 
 <div class="mb-3">
 

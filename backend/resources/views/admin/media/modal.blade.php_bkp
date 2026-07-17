@@ -1,0 +1,220 @@
+<div class="modal fade" id="mediaModal" tabindex="-1">
+
+<div class="modal-dialog modal-xl modal-dialog-scrollable">
+
+<div class="modal-content">
+
+<div class="modal-header">
+
+<h5 class="modal-title">
+
+<i class="bi bi-images"></i>
+
+Biblioteca de Mídia
+
+</h5>
+
+<button
+type="button"
+class="btn-close"
+data-bs-dismiss="modal">
+</button>
+
+</div>
+
+<div class="modal-body">
+
+<div class="row mb-3">
+
+<div class="col-md-8">
+
+<input
+id="media_search"
+type="text"
+class="form-control"
+placeholder="Pesquisar imagem...">
+
+</div>
+
+<div class="col-md-4 text-end">
+
+<button
+id="btnUseMedia"
+type="button"
+class="btn btn-primary"
+disabled>
+
+<i class="bi bi-check-circle"></i>
+
+Usar imagem
+
+</button>
+
+</div>
+
+</div>
+
+<div class="row g-3" id="mediaGrid">
+
+@foreach($media as $item)
+
+<div class="col-xl-2 col-lg-3 col-md-4 col-6 media-col">
+
+<div
+class="card media-item h-100"
+
+data-id="{{ $item->id }}"
+
+data-name="{{ strtolower($item->name) }}"
+
+data-image="{{ asset('storage/'.$item->file) }}"
+
+style="cursor:pointer">
+
+<img
+src="{{ asset('storage/'.$item->file) }}"
+class="card-img-top"
+style="height:140px;object-fit:cover">
+
+<div class="card-body p-2 text-center">
+
+<small>
+
+{{ \Illuminate\Support\Str::limit($item->name,20) }}
+
+</small>
+
+</div>
+
+</div>
+
+</div>
+
+@endforeach
+
+</div>
+
+</div>
+
+<div class="modal-footer">
+
+<button
+type="button"
+class="btn btn-secondary"
+data-bs-dismiss="modal">
+
+Cancelar
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+let selectedMedia = null;
+
+document.querySelectorAll('.media-item').forEach(function(card){
+
+    card.addEventListener('click',function(){
+
+        document.querySelectorAll('.media-item').forEach(function(c){
+
+            c.classList.remove(
+                'border-primary',
+                'border-3',
+                'shadow'
+            );
+
+        });
+
+        this.classList.add(
+            'border-primary',
+            'border-3',
+            'shadow'
+        );
+
+        selectedMedia=this;
+
+        document
+            .getElementById('btnUseMedia')
+            .disabled=false;
+
+    });
+
+});
+
+document
+.getElementById('btnUseMedia')
+.addEventListener('click',function(){
+
+    if(!selectedMedia){
+
+        return;
+
+    }
+
+    document
+        .getElementById('media_id')
+        .value=selectedMedia.dataset.id;
+
+    document
+        .getElementById('media_preview')
+        .innerHTML=
+
+        '<img src="'+
+        selectedMedia.dataset.image+
+        '" class="img-thumbnail" style="max-height:180px">';
+
+    bootstrap.Modal
+        .getInstance(
+            document.getElementById('mediaModal')
+        )
+        .hide();
+
+});
+
+document
+.getElementById('media_search')
+.addEventListener('keyup',function(){
+
+    let txt=this.value.toLowerCase();
+
+    document.querySelectorAll('.media-col').forEach(function(col){
+
+        let card=col.querySelector('.media-item');
+
+        if(card.dataset.name.indexOf(txt)>=0){
+
+            col.style.display='';
+
+        }else{
+
+            col.style.display='none';
+
+        }
+
+    });
+
+});
+
+let currentField = null;
+
+function openMediaPicker(field){
+
+    currentField = field;
+
+    const modal = new bootstrap.Modal(
+        document.getElementById('mediaModal')
+    );
+
+    modal.show();
+
+}
+
+</script>

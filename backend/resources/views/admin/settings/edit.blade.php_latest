@@ -118,29 +118,20 @@ value="{{ old('document',$settings->document ?? '') }}">
 </div>
 
 
-
 <div class="col-md-4 mb-3">
-
-<label><b>Logo</b></label>
-
-<div id="logo_preview">
-
+<label>Logo</label>
+<input
+type="file"
+class="form-control"
+name="logo">
 @if($settings?->logo)
 
 <img
 src="{{ asset('storage/'.$settings->logo) }}"
-class="img-thumbnail"
-style="max-height:100px">
+class="img-thumbnail mt-2"
+style="height:80px">
 
 @endif
-
-</div>
-
-<input
-type="file"
-class="form-control mb-2"
-name="logo"
-onchange="previewSettingsImage(event,'logo_preview','logo_media_id')">
 
 <button
 type="button"
@@ -153,95 +144,43 @@ Biblioteca de Mídia
 
 </button>
 
-<input
-type="hidden"
-name="logo_media_id"
-id="logo_media_id">
-
+<input type="hidden" name="logo_media_id" id="logo_media_id">
 </div>
 
 
+
 <div class="col-md-4 mb-3">
-
-<label><b>Banner</b></label>
-
-<div id="banner_preview">
+<label>Banner</label>
+<input
+type="file"
+class="form-control"
+name="banner">
 
 @if($settings?->banner)
 
 <img
 src="{{ asset('storage/'.$settings->banner) }}"
-class="img-thumbnail w-100">
+class="img-thumbnail mt-2 w-100">
 
 @endif
 
 </div>
 
+<div class="col-md-4 mb-3">
+<label>Favicon</label>
 <input
 type="file"
-class="form-control mb-2"
-name="banner"
-onchange="previewSettingsImage(event,'banner_preview','banner_media_id')">
-
-<button
-type="button"
-class="btn btn-outline-primary btn-sm"
-onclick="openMediaPicker('banner')">
-
-<i class="bi bi-images"></i>
-
-Biblioteca de Mídia
-
-</button>
-
-<input
-type="hidden"
-name="banner_media_id"
-id="banner_media_id">
-
-</div>
-
-
-
-
-<div class="col-md-4 mb-3">
-
-<label><b>Favicon</b></label>
-
-<div id="favicon_preview">
+class="form-control"
+name="favicon">
 
 @if($settings?->favicon)
 
 <img
 src="{{ asset('storage/'.$settings->favicon) }}"
-class="img-thumbnail"
-style="max-height:48px">
+class="img-thumbnail mt-2"
+style="height:40px">
 
 @endif
-
-</div>
-
-<input
-type="file"
-class="form-control mb-2"
-name="favicon"
-onchange="previewSettingsImage(event,'favicon_preview','favicon_media_id')">
-
-<button
-type="button"
-class="btn btn-outline-primary btn-sm"
-onclick="openMediaPicker('favicon')">
-
-<i class="bi bi-images"></i>
-
-Biblioteca de Mídia
-
-</button>
-
-<input
-type="hidden"
-name="favicon_media_id"
-id="favicon_media_id">
 
 </div>
 
@@ -516,7 +455,7 @@ value="{{ old('phone',$settings->phone ?? '') }}">
 </div>
 
 <div class="col-md-12 mt-3">
-Fa
+
 <label>Horário</label>
 
 <textarea
@@ -661,36 +600,5 @@ Salvar Configurações
 </form>
 
 </div>
-
-<script>
-
-function previewSettingsImage(event,previewId,hiddenId){
-
-    document.getElementById(hiddenId).value='';
-
-    const file=event.target.files[0];
-
-    if(!file){
-        return;
-    }
-
-    const preview=document.getElementById(previewId);
-
-    preview.innerHTML='';
-
-    const img=document.createElement('img');
-
-    img.src=URL.createObjectURL(file);
-
-    img.className='img-thumbnail';
-
-    img.style.maxHeight='100px';
-
-    preview.appendChild(img);
-
-}
-
-</script>
-
 
 @endsection
