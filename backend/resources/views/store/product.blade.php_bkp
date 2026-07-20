@@ -60,12 +60,11 @@ src="{{ asset('storage/'.$product->image) }}">
 
 </h1>
 
-<button
-class="favorite-btn {{ in_array($product->id, session('favorites',[])) ? 'active' : '' }}"
-type="button"
-data-product="{{ $product->id }}">
+<button 
+class="favorite-btn"
+type="button">
 
-<i class="bi {{ in_array($product->id, session('favorites',[])) ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+<i class="bi bi-heart"></i>
 
 </button>
 
@@ -266,54 +265,5 @@ Ver Produto
 @endif
 
 @include('store.partials.footer')
-
-
-<script>
-
-document.querySelectorAll('.favorite-btn').forEach(function(btn){
-
-    btn.addEventListener('click',function(){
-
-        let product = this.dataset.product;
-
-        fetch('/favorites/toggle/'+product,{
-
-            method:'POST',
-
-            headers:{
-                'X-CSRF-TOKEN':'{{ csrf_token() }}',
-                'Accept':'application/json'
-            }
-
-        })
-
-        .then(r=>r.json())
-
-        .then(data=>{
-
-            this.classList.toggle('active',data.favorite);
-
-            let icon=this.querySelector('i');
-
-            if(data.favorite){
-
-                icon.classList.remove('bi-heart');
-                icon.classList.add('bi-heart-fill');
-
-            }else{
-
-                icon.classList.remove('bi-heart-fill');
-                icon.classList.add('bi-heart');
-
-            }
-
-        });
-
-    });
-
-});
-
-</script>
-
 
 @endsection

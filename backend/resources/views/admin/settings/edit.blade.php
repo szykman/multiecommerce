@@ -87,7 +87,7 @@ Rodapé
 <div class="row">
 
 <div class="col-md-6 mb-3">
-<label>Nome da Empresa</label>
+<label><strong>Nome da Empresa</label></strong>
 <input
 type="text"
 class="form-control"
@@ -96,7 +96,7 @@ value="{{ old('name',$store->name) }}">
 </div>
 
 <div class="col-md-6 mb-3">
-<label>E-mail</label>
+<label><strong>E-mail</label></strong>
 <input
 type="email"
 class="form-control"
@@ -106,7 +106,7 @@ value="{{ old('email',$settings->email ?? '') }}">
 
 <div class="col-md-6 mb-3">
 
-<label>CPF / CNPJ</label>
+<label><strong>CPF / CNPJ</label></strong>
 
 <input
 type="text"
@@ -121,7 +121,7 @@ value="{{ old('document',$settings->document ?? '') }}">
 
 <div class="col-md-4 mb-3">
 
-<label><b>Logo</b></label>
+<label><strong><b>Logo</b></label></strong>
 
 <div id="logo_preview">
 
@@ -163,7 +163,7 @@ id="logo_media_id">
 
 <div class="col-md-4 mb-3">
 
-<label><b>Banner</b></label>
+<label><strong><b>Banner</b></label></strong>
 
 <div id="banner_preview">
 
@@ -206,7 +206,7 @@ id="banner_media_id">
 
 <div class="col-md-4 mb-3">
 
-<label><b>Favicon</b></label>
+<label><strong><b>Favicon</b></label></strong>
 
 <div id="favicon_preview">
 
@@ -263,7 +263,7 @@ id="favicon_media_id">
 
 <div class="col-md-4">
 
-<label>Cor Primária</label>
+<label><strong>Cor Primária</label></strong>
 
 <input
 type="color"
@@ -275,7 +275,7 @@ value="{{ old('primary_color',$settings->primary_color ?? '#0d6efd') }}">
 
 <div class="col-md-4">
 
-<label>Cor Secundária</label>
+<label><strong>Cor Secundária</label></strong>
 
 <input
 type="color"
@@ -287,7 +287,7 @@ value="{{ old('secondary_color',$settings->secondary_color ?? '#6c757d') }}">
 
 <div class="col-md-4">
 
-<label>Bordas</label>
+<label><strong>Bordas</label></strong>
 
 <select
 class="form-select"
@@ -316,7 +316,7 @@ Muito Arredondadas
 
 <div class="col-md-4 mt-3">
 
-<label>Tema</label>
+<label><strong>Tema</label></strong>
 
 <select
 class="form-select"
@@ -351,7 +351,7 @@ Automático
 
 <div class="col-md-4 mt-3">
 
-<label>Fonte</label>
+<label><strong>Fonte</label></strong>
 
 <select
 class="form-select"
@@ -416,7 +416,7 @@ Courier New
 
 <div class="col-md-4 mt-3">
 
-<label>Sombras</label>
+<label><strong>Sombras</label></strong>
 
 <select
 class="form-select"
@@ -471,7 +471,7 @@ value="1"
 
 Habilitar animações e efeitos
 
-</label>
+</label></strong>
 
 </div>
 
@@ -496,7 +496,7 @@ Habilitar animações e efeitos
 
 <div class="col-md-6">
 
-<label>WhatsApp</label>
+<label><strong>WhatsApp</label></strong>
 
 <input
 class="form-control"
@@ -506,7 +506,7 @@ value="{{ old('whatsapp',$settings->whatsapp ?? '') }}">
 
 <div class="col-md-6">
 
-<label>Telefone</label>
+<label><strong>Telefone</label></strong>
 
 <input
 class="form-control"
@@ -516,8 +516,8 @@ value="{{ old('phone',$settings->phone ?? '') }}">
 </div>
 
 <div class="col-md-12 mt-3">
-Fa
-<label>Horário</label>
+
+<label><strong>Horário</label></strong>
 
 <textarea
 class="form-control"
@@ -581,13 +581,13 @@ value="{{ old('youtube',$settings->youtube ?? '') }}">
 
 <div class="card-body">
 
-<label>Título SEO</label>
+<label><strong>Título SEO</label></strong>
 
 <input
 class="form-control mb-3"
 name="seo_title"
 value="{{ old('seo_title',$settings->seo_title ?? '') }}">
-<label>Descrição</label>
+<label><strong>Descrição</label></strong>
 
 <textarea
 rows="4"
@@ -595,7 +595,7 @@ class="form-control mb-3"
 name="seo_description">{{ old('seo_description',$settings->seo_description ?? '') }}</textarea>
 
 
-<label>Palavras-chave</label>
+<label><strong>Palavras-chave</label></strong>
 
 <textarea
 rows="3"
@@ -614,7 +614,7 @@ name="seo_keywords">{{ old('seo_keywords',$settings->seo_keywords ?? '') }}</tex
 
 <div class="card-body">
 
-<label>Google Maps</label>
+<label><strong>Google Maps</label></strong>
 
 <textarea
 rows="4"
@@ -622,14 +622,14 @@ class="form-control mb-3"
 name="google_maps">{{ old('google_maps',$settings->google_maps ?? '') }}</textarea>
 
 
-<label>Copyright</label>
+<label><strong>Copyright</label></strong>
 
 <input
 class="form-control mb-3"
 name="copyright"
 value="{{ old('copyright',$settings->copyright ?? '') }}">
 
-<label>Texto Rodapé</label>
+<label><strong>Texto Rodapé</label></strong>
 
 <textarea
 rows="5"

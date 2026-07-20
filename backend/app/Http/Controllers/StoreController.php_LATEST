@@ -78,7 +78,6 @@ class StoreController extends Controller
         ->take(8)
         ->get();
 
-$favorites = session()->get('favorites', []);
 
         return view(
             'store.home',
@@ -87,8 +86,7 @@ $favorites = session()->get('favorites', []);
                 'settings',
                 'categories',
                 'cmsCategories',
-                'products',
-		'favorites'
+                'products'
             )
         );
     }
@@ -175,7 +173,6 @@ $favorites = session()->get('favorites', []);
         ->paginate(12)
         ->withQueryString();
 
-$favorites = session()->get('favorites', []);
 
         return view(
             'store.category',
@@ -185,8 +182,7 @@ $favorites = session()->get('favorites', []);
                 'category',
                 'categories',
                 'cmsCategories',
-                'products',
-		'favorites'
+                'products'
             )
         );
 
@@ -252,7 +248,6 @@ $favorites = session()->get('favorites', []);
         ->take(4)
         ->get();
 
-$favorites = session()->get('favorites', []);
 
         return view(
             'store.product',
@@ -262,8 +257,7 @@ $favorites = session()->get('favorites', []);
                 'product',
                 'categories',
                 'cmsCategories',
-                'relatedProducts',
-		'favorites'
+                'relatedProducts'
             )
         );
     }

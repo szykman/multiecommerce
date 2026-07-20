@@ -1,4 +1,6 @@
 <?php
+
+use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Services\TenantManager;
 use App\Http\Controllers\StoreController;
@@ -29,6 +31,11 @@ Route::get(
     '/carrinho',
     [StoreController::class,'cart']
 )->name('store.cart');
+
+Route::post(
+    '/favorites/toggle/{product}',
+    [FavoriteController::class,'toggle']
+)->name('favorites.toggle');
 
 Route::post(
     '/carrinho/adicionar/{slug}',
