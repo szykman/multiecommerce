@@ -2,13 +2,23 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Product;
+use App\Models\ProductMedia;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
+use App\Services\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class MediaController extends Controller
 {
+    protected MediaService $mediaService;
+
+    public function __construct(MediaService $mediaService)
+    {
+        $this->mediaService = $mediaService;
+    }
+
     public function index()
     {
         $media = Media::where(
@@ -40,114 +50,92 @@ class MediaController extends Controller
 
         foreach ($request->file('files', []) as $file) {
 
-$exists = Media::where(
-    'store_id',
-    auth()->user()->store_id
-)
-->where('name', pathinfo(
-    $file->getClientOriginalName(),
-    PATHINFO_FILENAME
-))
-->where('size', $file->getSize())
-->exists();
+            $this->mediaService->store(
+                $file,
+                auth()->user()->store_id,
+                'Geral'
+            );
 
-
-if($exists){
-
-    continue;
-
-}
-
-            $path = $file->store('media', 'public');
-
-            $type = explode('/', $file->getMimeType())[0];
-
-            Media::create([
-
-                'store_id'  => auth()->user()->store_id,
-
-                'name'      => pathinfo(
-                    $file->getClientOriginalName(),
-                    PATHINFO_FILENAME
-                ),
-
-                'file'      => $path,
-
-                'type'      => $type,
-
-                'mime'      => $file->getMimeType(),
-
-                'extension' => $file->extension(),
-
-                'size'      => $file->getSize(),
-
-                'folder'    => 'Geral'
-
-            ]);
         }
 
-return response()->json([
-    'success'=>true
-]);
-
-    }
-
-
-public function upload(Request $request)
-{
-
-    $request->validate([
-
-        'files.*'=>'required|file|max:51200'
-
-    ]);
-
-
-    foreach($request->file('files') as $file){
-
-
-        $path=$file->store(
-            'media',
-            'public'
-        );
-
-
-        Media::create([
-
-            'store_id'=>auth()->user()->store_id,
-
-            'name'=>$file->getClientOriginalName(),
-
-            'file'=>$path,
-
-            'type'=>explode(
-                '/',
-                $file->getMimeType()
-            )[0],
-
-            'mime'=>$file->getMimeType(),
-
-            'extension'=>$file->extension(),
-
-            'size'=>$file->getSize(),
-
-            'folder'=>'Geral'
-
+        return response()->json([
+            'success' => true
         ]);
 
     }
 
-
-    return response()->json([
-
-        'success'=>true
-
+ public function upload(Request $request)
+{
+    $request->validate([
+        'files.*' => 'required|file|max:51200'
     ]);
 
+    $uploaded = [];
+
+    foreach ($request->file('files', []) as $file) {
+
+        $media = $this->mediaService->store(
+            $file,
+            auth()->user()->store_id,
+            'Produtos'   // <- corrigido
+        );
+
+        $uploaded[] = [
+            'id'   => $media->id,
+            'file' => $media->file
+        ];
+    }
+
+    return response()->json([
+        'success' => true,
+        'media'   => $uploaded
+    ]);
 }
 
+    public function destroy($medium)
+    {
+        $media = Media::findOrFail($medium);
 
-public function destroy(Media $media) { abort_if( $media->store_id != auth()->user()->store_id, 403 ); Storage::disk('public') ->delete($media->file); $media->delete(); return redirect() ->route('media.index') ->with( 'success', 'Arquivo excluído.' ); }
+        if (!auth()->check()) {
+            abort(403, 'Usuário não autenticado');
+        }
 
+        abort_if(
+            $media->store_id != auth()->user()->store_id,
+            403
+        );
+
+        // produtos onde a mídia é a imagem principal
+        $produtosComoPrincipal = Product::where('media_id', $media->id)
+            ->pluck('name');
+
+        // produtos onde a mídia está na galeria
+        $produtosNaGaleria = Product::whereHas('gallery', function ($q) use ($media) {
+                $q->where('media_id', $media->id);
+            })
+            ->pluck('name');
+
+        // junta os dois, remove duplicados (caso o mesmo produto use a
+        // mídia como principal E na galeria) e reindexa
+        $produtos = $produtosComoPrincipal
+            ->merge($produtosNaGaleria)
+            ->unique()
+            ->values();
+
+        if ($produtos->isNotEmpty()) {
+
+            $lista = $produtos->implode(', ');
+
+            return back()->with(
+                'error',
+                'Esta imagem está sendo usada nos produtos: ' . $lista . '. Remova-a desses produtos antes de excluir.'
+            );
+        }
+
+        Storage::disk('public')->delete($media->file);
+        $media->delete();
+
+        return redirect()->route('media.index')->with('success', 'Arquivo excluído.');
+    }
 
 }

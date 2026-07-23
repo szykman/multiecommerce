@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Media;
 use App\Models\Product;
+use App\Models\ProductMedia;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -111,6 +112,9 @@ class ProductController extends Controller
             403
         );
 
+$product->load('gallery.media');
+
+
         $categories = Category::where(
             'store_id',
             auth()->user()->store_id
@@ -139,7 +143,8 @@ class ProductController extends Controller
 
 public function update(Request $request, Product $product)
 {
-    abort_if(
+
+abort_if(
         $product->store_id != auth()->user()->store_id,
         403
     );
@@ -161,6 +166,12 @@ public function update(Request $request, Product $product)
         'stock'            => 'required|integer',
 
         'image'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+
+'gallery' => 'nullable|array',
+
+'gallery.*' => 'exists:media,id',
+
+
 
     ]);
 
@@ -213,9 +224,53 @@ $media = $this->mediaService->store(
         $data['name']
     );
 
-    $product->update($data);
+$product->update($data);
 
-    return redirect()
+
+/*
+|--------------------------------------------------------------------------
+| Galeria de imagens
+|--------------------------------------------------------------------------
+*/
+
+if ($request->has('gallery')) {
+
+
+    // limpa a galeria atual do produto
+    ProductMedia::where(
+        'product_id',
+        $product->id
+    )->delete();
+
+
+
+    foreach ($request->gallery as $index => $mediaId) {
+
+
+        ProductMedia::create([
+
+            'store_id' => auth()->user()->store_id,
+
+            'product_id' => $product->id,
+
+            'media_id' => $mediaId,
+
+            'position' => $index,
+
+            'is_primary' => false,
+
+        ]);
+
+
+    }
+
+}
+
+
+
+return redirect()
+
+
         ->route('products.index')
         ->with(
             'success',

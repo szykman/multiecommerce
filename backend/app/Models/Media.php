@@ -14,6 +14,8 @@ class Media extends Model
 
         'name',
 
+        'title',
+
         'file',
 
         'type',
@@ -32,7 +34,15 @@ class Media extends Model
 
         'alt',
 
-        'caption'
+        'caption',
+
+        'metadata',
+
+    ];
+
+    protected $casts = [
+
+        'metadata' => 'array'
 
     ];
 
@@ -45,11 +55,5 @@ class Media extends Model
     {
         return asset('storage/'.$this->file);
     }
-
-protected $casts = [
-
-    'metadata'=>'array'
-
-];
 
 }

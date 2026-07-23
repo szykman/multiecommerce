@@ -66,6 +66,20 @@ SEO
 </li>
 
 <li class="nav-item">
+
+<a class="nav-link"
+data-bs-toggle="tab"
+href="#recursos">
+
+<i class="bi bi-toggle-on"></i>
+
+Recursos
+
+</a>
+
+</li>
+
+<li class="nav-item">
 <a class="nav-link"
 data-bs-toggle="tab"
 href="#footer">
@@ -347,70 +361,115 @@ Automático
 
 </div>
 
+<div class="col-md-4 mt-3">
 
 
 <div class="col-md-4 mt-3">
 
-<label><strong>Fonte</label></strong>
+<label>
+<strong>Fonte da Loja</strong>
+</label>
 
 <select
 class="form-select"
-name="font">
+name="font"
+id="font_selector"
+style="width:300px;">
 
-<option value="system-ui">Padrão do Sistema</option>
+<option value="system-ui"
+{{ old('font',$settings->font ?? 'system-ui')=='system-ui'?'selected':'' }}>
+Padrão do Sistema
+</option>
+
 
 <option value="Arial"
-{{ old('font',$settings->font)=='Arial'?'selected':'' }}>
-
+{{ old('font',$settings->font ?? '')=='Arial'?'selected':'' }}>
 Arial
-
 </option>
+
 
 <option value="Verdana"
-{{ old('font',$settings->font)=='Verdana'?'selected':'' }}>
-
+{{ old('font',$settings->font ?? '')=='Verdana'?'selected':'' }}>
 Verdana
-
 </option>
+
 
 <option value="Tahoma"
-{{ old('font',$settings->font)=='Tahoma'?'selected':'' }}>
-
+{{ old('font',$settings->font ?? '')=='Tahoma'?'selected':'' }}>
 Tahoma
-
 </option>
+
 
 <option value="Trebuchet MS"
-{{ old('font',$settings->font)=='Trebuchet MS'?'selected':'' }}>
-
-Trebuchet
-
+{{ old('font',$settings->font ?? '')=='Trebuchet MS'?'selected':'' }}>
+Trebuchet MS
 </option>
+
 
 <option value="Georgia"
-{{ old('font',$settings->font)=='Georgia'?'selected':'' }}>
-
+{{ old('font',$settings->font ?? '')=='Georgia'?'selected':'' }}>
 Georgia
-
 </option>
+
 
 <option value="Times New Roman"
-{{ old('font',$settings->font)=='Times New Roman'?'selected':'' }}>
-
+{{ old('font',$settings->font ?? '')=='Times New Roman'?'selected':'' }}>
 Times New Roman
-
 </option>
+
 
 <option value="Courier New"
-{{ old('font',$settings->font)=='Courier New'?'selected':'' }}>
-
+{{ old('font',$settings->font ?? '')=='Courier New'?'selected':'' }}>
 Courier New
-
 </option>
+
+
+<option value="Impact"
+{{ old('font',$settings->font ?? '')=='Impact'?'selected':'' }}>
+Impact
+</option>
+
+
+<option value="Comic Sans MS"
+{{ old('font',$settings->font ?? '')=='Comic Sans MS'?'selected':'' }}>
+Comic Sans
+</option>
+
+
+<option value="Lucida Console"
+{{ old('font',$settings->font ?? '')=='Lucida Console'?'selected':'' }}>
+Lucida Console
+</option>
+
+
+<option value="Palatino Linotype"
+{{ old('font',$settings->font ?? '')=='Palatino Linotype'?'selected':'' }}>
+Palatino
+</option>
+
 
 </select>
 
+
+
+
+
 </div>
+
+
+<div 
+id="font_preview"
+class="border rounded mt-3 p-3 text-center"
+style="font-size:22px">
+
+MultiEcommerce
+
+</div>
+
+
+</div>
+
+
 
 
 
@@ -563,9 +622,9 @@ value="{{ old('tiktok',$settings->tiktok ?? '') }}">
 </div>
 
 <div class="col-md-6 mb-3">
-<input class="form-control" placeholder="YouTube"
+
+<input class="form-control" name="youtube" placeholder="YouTube"
 value="{{ old('youtube',$settings->youtube ?? '') }}">
-</div>
 
 </div>
 
@@ -574,6 +633,112 @@ value="{{ old('youtube',$settings->youtube ?? '') }}">
 </div>
 
 </div>
+
+</div>
+
+
+
+
+<div class="tab-pane fade" id="recursos">
+
+<div class="card">
+
+<div class="card-body">
+
+<h5 class="mb-4">
+Recursos da Loja
+</h5>
+
+
+<div class="row">
+
+
+@php
+
+$features = [
+
+'show_stock'=>'Mostrar estoque',
+
+'show_favorites'=>'Mostrar favoritos',
+
+'show_rating'=>'Mostrar avaliações',
+
+'show_sale_price'=>'Mostrar preço promocional',
+
+'show_related_products'=>'Mostrar produtos relacionados',
+
+'show_sold_products'=>'Mostrar produtos vendidos',
+
+'show_whatsapp_button'=>'Mostrar botão de chamar pelo WhatsApp',
+
+'show_share'=>'Mostrar botão de compartilhamento',
+
+'show_breadcrumbs'=>'Mostrar breadcrumbs',
+
+];
+
+@endphp
+
+
+
+@foreach($features as $key=>$label)
+
+<div class="col-md-6 mt-3">
+
+<div class="form-check form-switch">
+
+
+<input
+type="hidden"
+name="settings[resources][{{ $key }}]"
+value="0">
+
+
+<input 
+class="form-check-input"
+type="checkbox"
+name="settings[resources][{{ $key }}]"
+value="1"
+
+{{ 
+data_get(
+$settings->settings,
+"resources.$key",
+true
+)
+?'checked':''
+}}
+
+>
+
+
+<label class="form-check-label">
+
+{{ $label }}
+
+</label>
+
+
+</div>
+
+</div>
+
+
+@endforeach
+
+
+</div>
+
+
+</div>
+
+</div>
+
+</div>
+
+
+
+
 
 <div class="tab-pane fade" id="seo">
 
@@ -692,5 +857,99 @@ function previewSettingsImage(event,previewId,hiddenId){
 
 </script>
 
+<script>
+
+const fontSelector = document.getElementById('font_selector');
+
+const fontPreview = document.getElementById('font_preview');
+
+
+function updateFontPreview(){
+
+    let font = fontSelector.value;
+
+    fontPreview.style.fontFamily = font;
+
+}
+
+
+if(fontSelector){
+
+    updateFontPreview();
+
+
+    fontSelector.addEventListener(
+        'change',
+        updateFontPreview
+    );
+
+}
+
+
+</script>
+
+
+
+<script>
+
+document.addEventListener('DOMContentLoaded', function(){
+
+
+    // recupera última aba aberta
+
+    let activeTab = localStorage.getItem('settings_active_tab');
+
+
+    if(activeTab){
+
+        let tab = document.querySelector(
+            'a[href="'+activeTab+'"]'
+        );
+
+
+        if(tab){
+
+            let bootstrapTab = new bootstrap.Tab(tab);
+
+            bootstrapTab.show();
+
+        }
+
+    }
+
+
+
+    // grava quando trocar de aba
+
+    document
+    .querySelectorAll('[data-bs-toggle="tab"]')
+    .forEach(function(tab){
+
+
+        tab.addEventListener(
+            'shown.bs.tab',
+            function(event){
+
+
+                let href = event.target.getAttribute('href');
+
+
+                localStorage.setItem(
+                    'settings_active_tab',
+                    href
+                );
+
+
+            }
+        );
+
+
+    });
+
+
+
+});
+
+</script>
 
 @endsection

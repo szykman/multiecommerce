@@ -207,13 +207,14 @@ $favorites = session()->get('favorites', []);
         ]);
 
 
-        $product = Product::where(
-            'store_id',
-            $store->id
-        )
-        ->where('slug',$slug)
-        ->where('active',1)
-        ->firstOrFail();
+        $product = Product::with('gallery.media')
+    ->where(
+        'store_id',
+        $store->id
+    )
+    ->where('slug',$slug)
+    ->where('active',1)
+    ->firstOrFail();
 
 
         $categories = Category::where(

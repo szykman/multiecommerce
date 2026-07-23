@@ -46,7 +46,6 @@
                 </div>
 
 
-             
 
                 <div class="row">
 
@@ -220,7 +219,7 @@
 
     <label class="form-label">
 
-        <b>Imagem do Produto</b>
+        <b>Imagem Principal</b>
 
     </label>
 
@@ -269,6 +268,107 @@
         value="{{ old('media_id',$product->media_id) }}">
 
 </div>
+
+
+
+
+
+<hr class="my-4">
+
+<h4>
+    <i class="bi bi-images"></i>
+    Galeria de Fotos
+</h4>
+
+<p class="text-muted">
+    Adicione fotos adicionais do produto.
+</p>
+
+<div class="mb-3">
+
+    <button
+        type="button"
+        class="btn btn-outline-primary"
+        onclick="openGalleryPicker()">
+
+        <i class="bi bi-images"></i>
+
+        Biblioteca de Mídia
+
+    </button>
+
+<input
+    type="file"
+    id="gallery_upload"
+    class="form-control mt-2"
+    multiple>
+
+<div id="gallery_upload_preview" class="row g-3 mt-3"></div>
+
+{{--
+    Aqui ficam os hidden inputs "gallery[]" das fotos NOVAS
+    (upload direto ou selecionadas na biblioteca).
+--}}
+<div id="gallery_inputs"></div>
+
+
+
+
+{{--
+    Fotos JÁ SALVAS no produto. Cada card agora carrega seu
+    próprio hidden input "gallery[]" dentro do mesmo elemento
+    removido pelo botão "Excluir" — assim o array enviado no
+    submit representa sempre o estado final da galeria
+    (existentes que não foram excluídas + novas adicionadas),
+    e não some mais nada que já estava salvo.
+--}}
+<div
+    id="gallery_list"
+    class="row g-3">
+
+
+@foreach($product->gallery as $photo)
+
+<div class="col-md-3 gallery-item"
+     data-media="{{ $photo->media_id }}">
+
+    <div class="card">
+
+        <img
+            src="{{ asset('storage/'.$photo->media->file) }}"
+            class="card-img-top"
+            style="height:180px;object-fit:cover">
+
+        <div class="card-body text-center">
+
+            <button
+                type="button"
+                class="btn btn-danger btn-sm btn-remove-gallery">
+
+                Excluir
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <input
+        type="hidden"
+        name="gallery[]"
+        value="{{ $photo->media_id }}">
+
+</div>
+
+@endforeach
+
+</div>
+
+
+
+
+
+
 
 @include('admin.media.modal')
 
@@ -337,6 +437,116 @@ function previewLocalImage(event){
     preview.appendChild(img);
 
 }
+
+</script>
+
+
+<script>
+
+// Remove um card da galeria (existente ou recém-adicionado)
+// junto com o hidden input "gallery[]" correspondente.
+function removeGalleryItem(button){
+
+    let col = button.closest('.col-md-3');
+
+    if(col){
+        col.remove();
+    }
+
+}
+
+</script>
+
+
+<script>
+
+document.getElementById('gallery_upload').addEventListener('change', function(e){
+
+    let files = e.target.files;
+    if(!files.length){
+        return;
+    }
+
+    let preview = document.getElementById('gallery_upload_preview');
+    let inputs = document.getElementById('gallery_inputs');
+    let formData = new FormData();
+
+    preview.innerHTML = '';
+
+    for(let i = 0; i < files.length; i++){
+
+        formData.append('files[]', files[i]);
+
+        let img = document.createElement('img');
+        img.src = URL.createObjectURL(files[i]);
+        img.className = 'img-thumbnail';
+        img.style.width = '180px';
+        img.style.height = '180px';
+        img.style.objectFit = 'cover';
+
+        let col = document.createElement('div');
+        col.className = 'col-md-3';
+        col.appendChild(img);
+
+        preview.appendChild(col);
+    }
+
+    fetch("{{ route('media.upload') }}", {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+
+        if(!data.success){
+            alert('Erro no upload');
+            return;
+        }
+
+        if(data.media){
+
+            let html = '';
+
+            data.media.forEach(function(item){
+                html += `<input type="hidden" name="gallery[]" value="${item.id}">`;
+            });
+
+            // += para NÃO apagar os hidden inputs já existentes
+            // (fotos salvas anteriormente + outros lotes de upload)
+            inputs.innerHTML += html;
+
+        }
+
+    })
+    .catch(function(err){
+        console.error('Erro na requisição de upload:', err);
+        alert('Falha na comunicação com o servidor.');
+    });
+
+});
+
+</script>
+
+<script>
+
+document.addEventListener('click', function(e){
+
+    if(!e.target.classList.contains('btn-remove-gallery')){
+        return;
+    }
+
+    let item = e.target.closest('.gallery-item');
+
+    if(!item){
+        return;
+    }
+
+    item.remove();
+
+});
 
 </script>
 

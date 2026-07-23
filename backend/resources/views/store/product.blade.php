@@ -42,13 +42,82 @@ href="{{ route('store.category',$product->category->slug) }}">
 
 <div class="col-lg-6">
 
+
+
 @if($product->image)
 
 <img
-class="img-fluid rounded shadow"
-src="{{ asset('storage/'.$product->image) }}">
+id="mainProductImage"
+class="img-fluid rounded shadow w-100"
+style="
+max-height:600px;
+object-fit:contain;
+cursor:zoom-in;
+"
+src="{{ asset('storage/'.$product->image) }}"
+data-zoom="{{ asset('storage/'.$product->image) }}">
 
 @endif
+
+
+
+
+@if($product->gallery->count())
+
+<hr class="my-4">
+
+<h5>Galeria</h5>
+
+
+<div class="d-flex flex-wrap gap-2">
+
+<img
+src="{{ asset('storage/'.$product->image) }}"
+data-image="{{ asset('storage/'.$product->image) }}"
+class="gallery-thumb img-thumbnail border-primary border-3"
+style="
+width:90px;
+height:90px;
+object-fit:cover;
+cursor:pointer;
+transition:.2s;
+">
+
+
+@foreach($product->gallery as $photo)
+
+@if($photo->media->type == 'image')
+
+<img
+src="{{ asset('storage/'.$photo->media->file) }}"
+data-image="{{ asset('storage/'.$photo->media->file) }}"
+class="gallery-thumb img-thumbnail"
+style="
+width:90px;
+height:90px;
+object-fit:cover;
+cursor:pointer;
+transition:.2s;
+">
+
+@endif
+
+@endforeach
+
+</div>
+
+
+
+@else
+
+<div class="alert alert-danger mt-3">
+
+A galeria está vazia.
+
+</div>
+
+@endif
+
 
 </div>
 
@@ -59,6 +128,40 @@ src="{{ asset('storage/'.$product->image) }}">
 {{ $product->name }}
 
 </h1>
+
+<div class="mb-3">
+
+    @for($i=1;$i<=5;$i++)
+
+        @if($i <= $product->rating_stars)
+
+            <i class="bi bi-star-fill text-warning fs-5"></i>
+
+        @else
+
+            <i class="bi bi-star text-warning fs-5"></i>
+
+        @endif
+
+    @endfor
+
+    <span class="ms-2">
+
+        <strong>
+
+            {{ number_format($product->average_rating,1) }}
+
+        </strong>
+
+        <small class="text-muted">
+
+            ({{ $product->reviews_count }} avaliações)
+
+        </small>
+
+    </span>
+
+</div>
 
 <button
 class="favorite-btn {{ in_array($product->id, session('favorites',[])) ? 'active' : '' }}"
@@ -308,6 +411,50 @@ document.querySelectorAll('.favorite-btn').forEach(function(btn){
             }
 
         });
+
+    });
+
+});
+
+</script>
+
+
+<script>
+
+const mainImage = document.getElementById('mainProductImage');
+
+let zoom = new Drift(mainImage,{
+    paneContainer: document.querySelector('.col-lg-6'),
+    inlinePane: false,
+    hoverBoundingBox: true,
+    zoomFactor: 3
+});
+
+document.querySelectorAll('.gallery-thumb').forEach(function(img){
+
+    img.addEventListener('click',function(){
+
+        mainImage.src=this.dataset.image;
+
+        mainImage.setAttribute(
+            'data-zoom',
+            this.dataset.image
+        );
+
+        zoom.destroy();
+
+        zoom=new Drift(mainImage,{
+            paneContainer: document.querySelector('.col-lg-6'),
+            inlinePane:false,
+            hoverBoundingBox:true,
+            zoomFactor:3
+        });
+
+        document.querySelectorAll('.gallery-thumb').forEach(function(i){
+            i.classList.remove('border-primary','border-3');
+        });
+
+        this.classList.add('border-primary','border-3');
 
     });
 

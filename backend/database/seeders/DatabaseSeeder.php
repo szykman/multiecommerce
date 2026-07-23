@@ -13,6 +13,7 @@ class DatabaseSeeder extends Seeder
 $this->call([
     StoreSeeder::class,
     AdminUserSeeder::class,
+    ProductReviewSeeder::class,
 ]);
 
 //    User::factory()->create([

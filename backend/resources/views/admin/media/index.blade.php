@@ -228,7 +228,7 @@ style="height:160px;object-fit:cover;">
 
 <form
 method="POST"
-action="{{ route('media.destroy',$item->id) }}"
+action="{{ route('media.destroy',$item) }}"
 onsubmit="return confirm('Excluir este arquivo da biblioteca?')">
 
 @csrf

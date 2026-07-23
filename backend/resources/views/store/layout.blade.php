@@ -294,6 +294,11 @@ color:#ff4d5a;
 
 </style>
 
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/drift-zoom/1.5.1/drift-basic.min.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/drift-zoom/1.5.1/Drift.min.js"></script>
+
 </head>
 
 <body>
@@ -438,6 +443,8 @@ icon.className='bi bi-heart';
 
 
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/drift-zoom/dist/Drift.min.js"></script>
 
 </body>
 

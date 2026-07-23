@@ -198,6 +198,32 @@ class="card-img-top">
 
 </h5>
 
+<div class="mb-2">
+
+    @for($i=1;$i<=5;$i++)
+
+        @if($i <= $product->rating_stars)
+
+            <i class="bi bi-star-fill text-warning"></i>
+
+        @else
+
+            <i class="bi bi-star text-warning"></i>
+
+        @endif
+
+    @endfor
+
+    <small class="text-muted ms-2">
+
+        {{ number_format($product->average_rating,1) }}
+
+        ({{ $product->reviews_count }})
+
+    </small>
+
+</div>
+
 <button
     class="favorite-btn {{ in_array($product->id, session('favorites',[])) ? 'active' : '' }}"
     type="button"

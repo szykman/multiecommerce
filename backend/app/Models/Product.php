@@ -67,6 +67,29 @@ class Product extends Model
         );
     }
 
+public function featuredImage()
+{
+    return $this->media;
+}
+
+public function gallery()
+{
+    return $this->hasMany(ProductMedia::class)
+        ->orderBy('position');
+}
+
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
+
+public function averageRating()
+{
+    return $this->reviews()
+        ->where('approved', true)
+        ->avg('rating');
+}
+
     /*
     |--------------------------------------------------------------------------
     | Accessor da imagem
@@ -156,5 +179,36 @@ class Product extends Model
                 / $this->price
             ) * 100
         );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Avaliações
+    |--------------------------------------------------------------------------
+    */
+
+    public function getAverageRatingAttribute()
+    {
+        return round(
+
+            $this->reviews()
+                ->where('approved', true)
+                ->avg('rating') ?? 0,
+
+            1
+
+        );
+    }
+
+    public function getReviewsCountAttribute()
+    {
+        return $this->reviews()
+            ->where('approved', true)
+            ->count();
+    }
+
+    public function getRatingStarsAttribute()
+    {
+        return round($this->average_rating);
     }
 }
