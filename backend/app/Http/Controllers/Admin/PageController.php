@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Media;
 use App\Models\Product;
+use App\Rules\ValidMediaFile;
 use App\Services\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -82,7 +83,7 @@ public function store(Request $request)
 
         'description' => 'nullable',
 
-        'image' => 'nullable|image|max:4096',
+        'image' => ['nullable', new ValidMediaFile],
 
         'active' => 'nullable'
 
@@ -221,8 +222,7 @@ public function update(Request $request, Product $page)
 
         'description' => 'nullable',
 
-        'image' => 'nullable|image|max:4096',
-
+        'image' => ['nullable', new ValidMediaFile],
         'active' => 'nullable'
 
     ]);

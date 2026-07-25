@@ -42,6 +42,13 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+
+
+ // ADICIONAR ESTE BLOCO:
+        'customer' => [
+            'driver' => 'session',
+            'provider' => 'customers',
+        ],
     ],
 
     /*
@@ -71,6 +78,12 @@ return [
         //     'driver' => 'database',
         //     'table' => 'users',
         // ],
+
+        // ADICIONAR ESTE BLOCO:
+        'customers' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Customer::class,
+        ],
     ],
 
     /*

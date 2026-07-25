@@ -303,6 +303,24 @@ href="https://cdnjs.cloudflare.com/ajax/libs/drift-zoom/1.5.1/drift-basic.min.cs
 
 <body>
 
+@if(session('success'))
+<div class="container mt-3">
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        {{ session('success') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+@endif
+
+@if(session('error'))
+<div class="container mt-3">
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        {{ session('error') }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+@endif
+
 @yield('content')
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>

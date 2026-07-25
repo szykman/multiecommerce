@@ -83,13 +83,13 @@
 
                             data-name="{{ strtolower($item->name) }}"
 
-                            data-image="{{ asset('storage/'.$item->file) }}"
+                            data-image="{{ asset('storage/'.($item->preview ?: $item->file)) }}"
 
                             style="cursor:pointer">
 
 
                             <img
-                                src="{{ asset('storage/'.$item->file) }}"
+                                src="{{ asset('storage/'.($item->thumbnail ?: $item->file)) }}"
                                 class="card-img-top"
                                 style="height:140px;object-fit:cover">
 

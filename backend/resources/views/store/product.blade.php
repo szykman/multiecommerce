@@ -54,8 +54,8 @@ max-height:600px;
 object-fit:contain;
 cursor:zoom-in;
 "
-src="{{ asset('storage/'.$product->image) }}"
-data-zoom="{{ asset('storage/'.$product->image) }}">
+src="{{ $product->image_preview_url }}"
+data-zoom="{{ $product->image_url }}">
 
 @endif
 
@@ -72,8 +72,9 @@ data-zoom="{{ asset('storage/'.$product->image) }}">
 <div class="d-flex flex-wrap gap-2">
 
 <img
-src="{{ asset('storage/'.$product->image) }}"
-data-image="{{ asset('storage/'.$product->image) }}"
+src="{{ $product->image_thumbnail_url }}"
+data-image="{{ $product->image_preview_url }}"
+data-zoom="{{ $product->image_url }}"
 class="gallery-thumb img-thumbnail border-primary border-3"
 style="
 width:90px;
@@ -89,8 +90,9 @@ transition:.2s;
 @if($photo->media->type == 'image')
 
 <img
-src="{{ asset('storage/'.$photo->media->file) }}"
-data-image="{{ asset('storage/'.$photo->media->file) }}"
+src="{{ asset('storage/'.($photo->media->thumbnail ?: $photo->media->file)) }}"
+data-image="{{ asset('storage/'.($photo->media->preview ?: $photo->media->file)) }}"
+data-zoom="{{ asset('storage/'.$photo->media->file) }}"
 class="gallery-thumb img-thumbnail"
 style="
 width:90px;
@@ -173,7 +175,7 @@ data-product="{{ $product->id }}">
 </button>
 
 
-<div class="mb-3">
+<div class="mb-3" id="stock_badge">
 
 @if($product->stock > 0)
 
@@ -196,6 +198,8 @@ Produto indisponível
 @endif
 
 </div>
+
+<div id="price_display">
 
 <h2 class="text-primary mb-4">
 
@@ -240,6 +244,46 @@ R$
 
 </h2>
 
+</div>
+
+@if($product->has_variants && $product->options->count())
+
+<div id="variants_selector" class="mb-4">
+
+    @foreach($product->options as $option)
+
+    <div class="mb-3">
+
+        <label class="form-label d-block">
+            <b>{{ $option->name }}</b>
+        </label>
+
+        <div class="d-flex flex-wrap gap-2 option-group" data-option-id="{{ $option->id }}">
+
+            @foreach($option->values as $value)
+
+            <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm option-value-btn"
+                data-option-id="{{ $option->id }}"
+                data-value-id="{{ $value->id }}">
+                {{ $value->value }}
+            </button>
+
+            @endforeach
+
+        </div>
+
+    </div>
+
+    @endforeach
+
+    <div id="variant_feedback" class="text-muted small"></div>
+
+</div>
+
+@endif
+
 <div class="mb-4">
 
 <label class="form-label">
@@ -250,6 +294,9 @@ Quantidade
 
 <input
 type="number"
+name="quantity"
+id="quantity_input"
+form="add_to_cart_form"
 class="form-control"
 value="1"
 min="1"
@@ -279,13 +326,18 @@ Comprar Agora
 </button>
 
 <form
+id="add_to_cart_form"
 method="POST"
 action="{{ route('store.cart.add',$product->slug) }}">
 
 @csrf
 
+<input type="hidden" name="variant_id" id="variant_id_input" value="">
+
 <button
-class="btn btn-outline-secondary w-100">
+id="add_to_cart_btn"
+class="btn btn-outline-secondary w-100"
+{{ $product->has_variants ? 'disabled' : '' }}>
 
 <i class="bi bi-cart-plus"></i>
 
@@ -438,7 +490,7 @@ document.querySelectorAll('.gallery-thumb').forEach(function(img){
 
         mainImage.setAttribute(
             'data-zoom',
-            this.dataset.image
+            this.dataset.zoom
         );
 
         zoom.destroy();
@@ -462,5 +514,203 @@ document.querySelectorAll('.gallery-thumb').forEach(function(img){
 
 </script>
 
+@if($product->has_variants && $product->options->count())
+@php
+    $productOptionsForJs = $product->options->map(function($option){
+        return [
+            'id' => $option->id,
+            'name' => $option->name,
+            'values' => $option->values->pluck('id'),
+        ];
+    });
+
+    $productVariantsForJs = $product->variants->map(function($variant){
+        return [
+            'id' => $variant->id,
+            'price' => (float) $variant->price,
+            'sale_price' => $variant->sale_price ? (float) $variant->sale_price : null,
+            'stock' => $variant->stock,
+            'option_value_ids' => $variant->optionValues->pluck('id'),
+        ];
+    });
+@endphp
+
+<script>
+
+/*
+|--------------------------------------------------------------------------
+| Seletor de Variações
+|--------------------------------------------------------------------------
+*/
+
+const productOptions = @json($productOptionsForJs);
+
+const productVariants = @json($productVariantsForJs);
+
+const selected = {};
+
+const variantFeedback = document.getElementById('variant_feedback');
+const variantIdInput = document.getElementById('variant_id_input');
+const addToCartBtn = document.getElementById('add_to_cart_btn');
+const priceDisplay = document.getElementById('price_display');
+const stockBadge = document.getElementById('stock_badge');
+const quantityInput = document.getElementById('quantity_input');
+
+function formatPrice(value){
+    return 'R$ ' + value.toFixed(2).replace('.', ',');
+}
+
+function findMatchingVariant(){
+
+    const selectedOptionIds = Object.keys(selected);
+
+    if(selectedOptionIds.length !== productOptions.length){
+        return null;
+    }
+
+    const selectedValueIds = Object.values(selected).map(Number).sort();
+
+    return productVariants.find(function(variant){
+
+        const variantValueIds = variant.option_value_ids.map(Number).sort();
+
+        if(variantValueIds.length !== selectedValueIds.length){
+            return false;
+        }
+
+        return variantValueIds.every(function(id, index){
+            return id === selectedValueIds[index];
+        });
+
+    }) || null;
+}
+
+/**
+ * Marca como indisponível (visualmente) os valores que, combinados
+ * com o que já está selecionado nas outras opções, não levam a
+ * nenhuma variante ativa com estoque.
+ */
+function refreshAvailability(){
+
+    document.querySelectorAll('.option-group').forEach(function(group){
+
+        const optionId = group.dataset.optionId;
+
+        group.querySelectorAll('.option-value-btn').forEach(function(btn){
+
+            const valueId = btn.dataset.valueId;
+
+            const hypothetical = Object.assign({}, selected, {
+                [optionId]: valueId,
+            });
+
+            const hasStock = productVariants.some(function(variant){
+
+                return Object.keys(hypothetical).every(function(optId){
+
+                    return variant.option_value_ids
+                        .map(String)
+                        .includes(String(hypothetical[optId]));
+
+                }) && variant.stock > 0;
+
+            });
+
+            btn.classList.toggle('disabled', !hasStock);
+            btn.style.opacity = hasStock ? '1' : '0.4';
+
+        });
+
+    });
+}
+
+function updateSelectionUI(){
+
+    const variant = findMatchingVariant();
+
+    refreshAvailability();
+
+    if(!variant){
+
+        variantIdInput.value = '';
+        addToCartBtn.disabled = true;
+
+        const missing = productOptions.length - Object.keys(selected).length;
+
+        variantFeedback.textContent = missing > 0
+            ? 'Selecione ' + missing + ' opção(ões) para continuar.'
+            : 'Combinação indisponível.';
+
+        return;
+    }
+
+    variantIdInput.value = variant.id;
+
+    const displayPrice = variant.sale_price || variant.price;
+
+    let priceHtml = '';
+
+    if(variant.sale_price){
+        priceHtml += '<h5><span class="text-decoration-line-through text-muted">'
+            + formatPrice(variant.price) + '</span></h5>';
+        priceHtml += '<h2 class="text-danger">' + formatPrice(variant.sale_price) + '</h2>';
+    }else{
+        priceHtml += '<h2>' + formatPrice(variant.price) + '</h2>';
+    }
+
+    priceDisplay.innerHTML = priceHtml;
+
+    if(variant.stock > 0){
+
+        stockBadge.innerHTML = '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Em estoque</span>';
+        addToCartBtn.disabled = false;
+        quantityInput.max = variant.stock;
+        variantFeedback.textContent = '';
+
+    }else{
+
+        stockBadge.innerHTML = '<span class="badge bg-danger">Produto indisponível</span>';
+        addToCartBtn.disabled = true;
+        variantFeedback.textContent = 'Esta combinação está sem estoque.';
+
+    }
+
+}
+
+document.querySelectorAll('.option-value-btn').forEach(function(btn){
+
+    btn.addEventListener('click', function(){
+
+        if(this.classList.contains('disabled')){
+            return;
+        }
+
+        const optionId = this.dataset.optionId;
+        const valueId = this.dataset.valueId;
+
+        // desmarca os irmãos da mesma opção
+        document.querySelectorAll(
+            '.option-value-btn[data-option-id="' + optionId + '"]'
+        ).forEach(function(sibling){
+            sibling.classList.remove('btn-primary', 'active');
+            sibling.classList.add('btn-outline-secondary');
+        });
+
+        this.classList.remove('btn-outline-secondary');
+        this.classList.add('btn-primary', 'active');
+
+        selected[optionId] = valueId;
+
+        updateSelectionUI();
+
+    });
+
+});
+
+// Estado inicial: nenhuma opção selecionada, botão desabilitado
+updateSelectionUI();
+
+</script>
+@endif
 
 @endsection

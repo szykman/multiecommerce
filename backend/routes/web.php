@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\Store\CustomerAuthController;
 
 use App\Services\TenantManager;
 
@@ -11,6 +12,7 @@ use App\Http\Controllers\Admin\AuthController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\StoreSettingsController;
 use App\Http\Controllers\Admin\PageController;
@@ -84,10 +86,24 @@ Route::middleware('tenant')->group(function () {
 
 
     Route::post(
-        '/carrinho/remover/{id}',
+        '/carrinho/remover/{key}',
         [StoreController::class,'removeFromCart']
     )
     ->name('store.cart.remove');
+
+
+    Route::post(
+        '/carrinho/atualizar/{key}',
+        [StoreController::class,'updateCart']
+    )
+    ->name('store.cart.update');
+
+
+    Route::post(
+        '/carrinho/limpar',
+        [StoreController::class,'clearCart']
+    )
+    ->name('store.cart.clear');
 
 
     Route::post(
@@ -95,6 +111,51 @@ Route::middleware('tenant')->group(function () {
         [FavoriteController::class,'toggle']
     )
     ->name('favorites.toggle');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Autenticação do Cliente (Customer)
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/cliente/cadastro',
+        [CustomerAuthController::class,'registerForm']
+    )
+    ->name('store.register');
+
+    Route::post(
+        '/cliente/cadastro',
+        [CustomerAuthController::class,'register']
+    );
+
+    Route::get(
+        '/cliente/login',
+        [CustomerAuthController::class,'loginForm']
+    )
+    ->name('store.login');
+
+    Route::post(
+        '/cliente/login',
+        [CustomerAuthController::class,'login']
+    );
+
+    Route::post(
+        '/cliente/logout',
+        [CustomerAuthController::class,'logout']
+    )
+    ->name('store.logout');
+
+    Route::middleware('auth:customer')->group(function () {
+
+        Route::get(
+            '/cliente/conta',
+            [CustomerAuthController::class,'account']
+        )
+        ->name('store.account');
+
+    });
 
 
 });
@@ -195,6 +256,37 @@ Route::middleware([
         [ProductController::class,'toggle']
     )
     ->name('products.toggle');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Variações de Produto
+    |--------------------------------------------------------------------------
+    */
+
+    Route::post(
+        'products/{product}/variants/generate',
+        [ProductVariantController::class, 'generateOptions']
+    )
+    ->name('products.variants.generate');
+
+    Route::post(
+        'products/{product}/variants/update',
+        [ProductVariantController::class, 'updateVariants']
+    )
+    ->name('products.variants.update');
+
+    Route::delete(
+        'products/variants/{variant}',
+        [ProductVariantController::class, 'destroy']
+    )
+    ->name('products.variants.destroy');
+
+    Route::post(
+        'products/{product}/variants/disable',
+        [ProductVariantController::class, 'disable']
+    )
+    ->name('products.variants.disable');
 
 
 

@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Media;
 use App\Models\Product;
 use App\Models\ProductMedia;
+use App\Rules\ValidMediaFile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -35,12 +36,24 @@ class ProductController extends Controller
                 'store_id',
                 auth()->user()->store_id
             )
-            ->whereHas('category', function ($q) {
+    //        ->whereHas('category', function ($q) {
 
-                $q->where('type', 'store');
+      //          $q->where('type', 'store');
 
-            })
-            ->with('category')
+        //    })
+          
+->where(function ($query) {
+
+    $query->whereNull('category_id')
+
+          ->orWhereHas('category', function ($q) {
+
+              $q->where('type', 'store');
+
+          });
+
+})
+  ->with('category')
 
             ->when($request->search, function ($query) use ($request) {
 
@@ -112,7 +125,7 @@ class ProductController extends Controller
             403
         );
 
-$product->load('gallery.media');
+$product->load('gallery.media', 'options.values', 'variants.optionValues.option');
 
 
         $categories = Category::where(
@@ -165,7 +178,7 @@ abort_if(
 
         'stock'            => 'required|integer',
 
-        'image'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+        'image'            => ['nullable', new ValidMediaFile],
 
 'gallery' => 'nullable|array',
 
@@ -296,7 +309,7 @@ public function store(Request $request)
 
         'stock'            => 'required|integer',
 
-        'image'            => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+        'image'            => ['nullable', new ValidMediaFile],
 
     ]);
 

@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\ProductMedia;
 use App\Http\Controllers\Controller;
 use App\Models\Media;
+use App\Rules\ValidMediaFile;
 use App\Services\MediaService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -45,7 +46,7 @@ class MediaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'files.*' => 'required|file|max:51200'
+            'files.*' => ['required', new ValidMediaFile],
         ]);
 
         foreach ($request->file('files', []) as $file) {
@@ -67,7 +68,7 @@ class MediaController extends Controller
  public function upload(Request $request)
 {
     $request->validate([
-        'files.*' => 'required|file|max:51200'
+        'files.*' => ['required', new ValidMediaFile],
     ]);
 
     $uploaded = [];

@@ -102,6 +102,22 @@
 </th>
 
 
+
+<th>
+    <a class="text-white text-decoration-none"
+       href="?sort=sale_price&direction={{ request('direction')=='asc' ? 'desc':'asc' }}">
+
+        Promoção
+
+        @if(request('sort')=='sale_price')
+            {{ request('direction')=='asc' ? '▲' : '▼' }}
+        @endif
+
+    </a>
+</th>
+
+
+
 <th>
     <a class="text-white text-decoration-none"
        href="?sort=stock&direction={{ request('direction')=='asc' ? 'desc':'asc' }}">
@@ -148,7 +164,7 @@
                 @if($product->image)
 
                     <img
-                        src="{{ asset('storage/'.$product->image) }}"
+                        src="{{ $product->image_thumbnail_url }}"
                         width="70"
                         height="70"
                         style="object-fit:cover;border-radius:8px;">
@@ -198,6 +214,27 @@
 
             </td>
 
+
+<td>
+
+    @if($product->sale_price)
+
+        <span class="text-danger fw-bold">
+
+            R$ {{ number_format($product->sale_price,2,',','.') }}
+
+        </span>
+
+    @else
+
+        <span class="text-muted">
+
+            —
+
+        </span>
+
+    @endif
+
             <td>
 
                 {{ $product->stock }}
@@ -227,6 +264,18 @@
 
 
              <td>
+
+ <a
+        href="{{ route('store.product',$product->slug) }}"
+        target="_blank"
+        class="btn btn-sm btn-outline-success"
+        title="Visualizar na Loja">
+
+        <i class="bi bi-eye"></i>
+
+    </a>
+
+
 
                                 <a
                                     href="{{ route('products.edit',$product) }}"

@@ -13,7 +13,7 @@
 @if($page->image)
 
 <img
-src="{{ asset('storage/'.$page->image) }}"
+src="{{ $page->image_preview_url }}"
 class="img-fluid rounded shadow mb-4 w-100">
 
 @endif

@@ -171,15 +171,31 @@ class="btn btn-primary ms-2">
 
 <li class="nav-item">
 
+@auth('customer')
+
 <a
 class="nav-link"
-href="#">
+href="{{ route('store.account') }}">
+
+<i class="bi bi-person-check"></i>
+
+{{ Auth::guard('customer')->user()->name }}
+
+</a>
+
+@else
+
+<a
+class="nav-link"
+href="{{ route('store.login') }}">
 
 <i class="bi bi-person"></i>
 
 Login
 
 </a>
+
+@endauth
 
 </li>
 

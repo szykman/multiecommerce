@@ -23,15 +23,6 @@
     </div>
 
 
-@if(session('success'))
-
-<div class="alert alert-success">
-
-{{ session('success') }}
-
-</div>
-
-@endif
 
 
 @if($media->count())
@@ -143,7 +134,7 @@ data-extension="{{ strtolower($item->extension) }}">
 @if(Str::startsWith($item->mime,'image'))
 
 <img
-src="{{ asset('storage/'.$item->file) }}"
+src="{{ asset('storage/'.($item->thumbnail ?: $item->file)) }}"
 class="card-img-top"
 style="height:160px;object-fit:cover;">
 

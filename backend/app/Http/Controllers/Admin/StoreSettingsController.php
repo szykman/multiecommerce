@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Store;
 use App\Models\StoreSetting;
 use App\Models\Media;
+use App\Rules\ValidMediaFile;
 use App\Services\MediaService;
 
 class StoreSettingsController extends Controller
@@ -66,6 +67,20 @@ class StoreSettingsController extends Controller
 
         $settings = StoreSetting::firstOrCreate([
             'store_id'=>$store->id
+        ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Validação dos arquivos (logo/banner/favicon não tinham
+        | nenhuma validação antes — nem tipo, nem tamanho, nem MIME)
+        |--------------------------------------------------------------------------
+        */
+
+        $request->validate([
+            'logo'    => ['nullable', new ValidMediaFile],
+            'banner'  => ['nullable', new ValidMediaFile],
+            'favicon' => ['nullable', new ValidMediaFile],
         ]);
 
 

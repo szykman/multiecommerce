@@ -4,11 +4,22 @@ namespace App\Services;
 
 use App\Models\Media;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Intervention\Image\Drivers\Imagick\Driver;
+use Intervention\Image\ImageManager;
 
 class MediaService
 {
+    protected ImageManager $imageManager;
+
+    public function __construct()
+    {
+      //  $this->imageManager = new ImageManager(new Driver());
+$this->imageManager = ImageManager::usingDriver(Driver::class);
+    }
+
     /**
      * Faz upload do arquivo para a Biblioteca.
      */
@@ -20,39 +31,23 @@ class MediaService
 
         /*
         |--------------------------------------------------------------------------
-        | Hash do arquivo
+        | Hash do arquivo (evita duplicidade por conteúdo, escopado por loja)
         |--------------------------------------------------------------------------
         */
 
-        $hash = sha1_file(
-            $file->getRealPath()
-        );
+        $hash = sha1_file($file->getRealPath());
 
-        /*
-        |--------------------------------------------------------------------------
-        | Evita duplicidade
-        |--------------------------------------------------------------------------
-        */
-
-        $existing = Media::where(
-            'store_id',
-            $storeId
-        )
-        ->where(
-            'metadata->hash',
-            $hash
-        )
-        ->first();
+        $existing = Media::where('store_id', $storeId)
+            ->where('metadata->hash', $hash)
+            ->first();
 
         if ($existing) {
-
             return $existing;
-
         }
 
         /*
         |--------------------------------------------------------------------------
-        | Nome original
+        | Nome original / nome físico
         |--------------------------------------------------------------------------
         */
 
@@ -61,79 +56,40 @@ class MediaService
             PATHINFO_FILENAME
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Nome físico
-        |--------------------------------------------------------------------------
-        */
+        $filename = Str::uuid().'.'.$file->extension();
 
-        $filename =
-
-            Str::uuid()
-
-            .'.'
-
-            .$file->extension();
+        $path = $file->storeAs('media', $filename, 'public');
 
         /*
         |--------------------------------------------------------------------------
-        | Salva arquivo
-        |--------------------------------------------------------------------------
-        */
-
-        $path = $file->storeAs(
-
-            'media',
-
-            $filename,
-
-            'public'
-
-        );
-
-        /*
-        |--------------------------------------------------------------------------
-        | Tipo
+        | Tipo / MIME
         |--------------------------------------------------------------------------
         */
 
         $mime = $file->getMimeType();
-
-        $type = explode(
-            '/',
-            $mime
-        )[0];
+        $type = explode('/', $mime)[0];
 
         /*
         |--------------------------------------------------------------------------
-        | Dimensões
+        | Dimensões (apenas imagens)
         |--------------------------------------------------------------------------
         */
 
         $width = null;
-
         $height = null;
 
-        if ($type == 'image') {
+        if ($type === 'image') {
 
-            try{
+            try {
+                $size = getimagesize($file->getRealPath());
 
-                $size = getimagesize(
-                    $file->getRealPath()
-                );
-
-                if($size){
-
+                if ($size) {
                     $width = $size[0];
-
                     $height = $size[1];
-
                 }
-
-            }catch(\Throwable $e){
-
+            } catch (\Throwable $e) {
+                // dimensões ficam nulas, não impede o upload
             }
-
         }
 
         /*
@@ -145,193 +101,165 @@ class MediaService
         $media = Media::create([
 
             'store_id' => $storeId,
-
             'name' => $originalName,
-
             'title' => $originalName,
-
             'file' => $path,
-
             'type' => $type,
-
             'mime' => $mime,
-
             'extension' => $file->extension(),
-
             'size' => $file->getSize(),
-
             'width' => $width,
-
             'height' => $height,
-
             'folder' => $folder,
 
             'metadata' => [
-
-                'hash' => $hash
-
-            ]
+                'hash' => $hash,
+            ],
 
         ]);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Próxima etapa
-        |--------------------------------------------------------------------------
-        */
-
-        $this->generatePreview(
-            $media
-        );
+        $this->generateDerivatives($media);
 
         return $media;
     }
 
     /**
-     * Gera preview e thumbnail.
+     * Gera thumbnail (300px) e preview (1200px) em WEBP, sem EXIF.
+     * O arquivo original nunca é alterado.
      */
-    protected function generatePreview(
-        Media $media
-    ): void
+    protected function generateDerivatives(Media $media): void
     {
-
-        /*
-        |--------------------------------------------------------------------------
-        | Por enquanto apenas imagens.
-        |--------------------------------------------------------------------------
-        */
-
         if ($media->type !== 'image') {
-
             return;
-
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Nesta primeira versão o preview
-        | será o próprio arquivo original.
-        |--------------------------------------------------------------------------
-        */
+        $originalFullPath = Storage::disk('public')->path($media->file);
 
-        $media->preview = $media->file;
+        $format = config('media.output_format', 'webp');
 
-        $media->thumbnail = $media->file;
+        try {
 
-        $media->optimized = true;
+            $thumbRelative = 'media/thumbs/'.Str::uuid().'.'.$format;
+            $thumbFullPath = Storage::disk('public')->path($thumbRelative);
+            $this->ensureDirectoryExists($thumbFullPath);
 
-        $media->save();
+    $thumbImage = $this->imageManager
+    ->decodePath($originalFullPath)
+    ->scaleDown(width: config('media.thumbnail_width',300));
 
+            $this->stripMetadata($thumbImage);
+
+            $thumbImage->save($thumbFullPath, quality: config('media.thumbnail_quality', 80));
+
+            $previewRelative = 'media/previews/'.Str::uuid().'.'.$format;
+            $previewFullPath = Storage::disk('public')->path($previewRelative);
+            $this->ensureDirectoryExists($previewFullPath);
+
+          //  $previewImage = $this->imageManager
+            //    ->read($originalFullPath)
+              //  ->scaleDown(width: config('media.preview_width', 1200));
+
+$previewImage = $this->imageManager
+    ->decodePath($originalFullPath)
+    ->scaleDown(width: config('media.preview_width',1200));
+
+
+            $this->stripMetadata($previewImage);
+
+            $previewImage->save($previewFullPath, quality: config('media.preview_quality', 85));
+
+            $media->thumbnail = $thumbRelative;
+            $media->preview = $previewRelative;
+            $media->optimized = true;
+
+            $media->save();
+
+        } catch (\Throwable $e) {
+
+            // Falha na geração não deve impedir o upload do arquivo
+            // original. Usamos o original como fallback nos dois
+            // campos, e registramos o erro para investigação.
+            $media->thumbnail = $media->file;
+            $media->preview = $media->file;
+            $media->optimized = false;
+
+            $media->save();
+
+            Log::warning('Falha ao gerar thumbnail/preview de mídia', [
+                'media_id' => $media->id,
+                'store_id' => $media->store_id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**
-     * Retorna URL pública.
+     * Regenera thumbnail/preview de uma mídia já existente
+     * (usado pelo comando de backfill em uploads antigos).
      */
-    public function url(
-        Media $media
-    ): string
+    public function regenerate(Media $media): void
     {
-
-        return asset(
-            'storage/'.$media->file
-        );
-
+        $this->generateDerivatives($media);
     }
 
     /**
-     * Retorna preview.
+     * Remove metadados EXIF (incluindo GPS) da imagem antes de salvar.
+     * Relevante para privacidade em contexto multi-tenant: fotos de
+     * celular frequentemente carregam coordenadas de onde foram
+     * tiradas, e isso não deve vazar nos thumbnails/previews públicos.
+     *
+     * A orientação (rotação) já foi aplicada aos pixels na leitura
+     * (o driver Imagick do Intervention Image auto-orienta ao ler),
+     * então removê-la depois não afeta a exibição correta da imagem.
      */
-    public function preview(
-        Media $media
-    ): string
+    protected function stripMetadata($image): void
     {
-
-        if ($media->preview) {
-
-            return asset(
-                'storage/'.$media->preview
-            );
-
+        try {
+            $image->core()->native()->stripImage();
+        } catch (\Throwable $e) {
+            // Se não for possível limpar os metadados, seguimos sem
+            // interromper a geração — não é um erro fatal.
         }
+    }
 
-        return asset(
-            'storage/'.$media->file
-        );
+    protected function ensureDirectoryExists(string $fullPath): void
+    {
+        $directory = dirname($fullPath);
 
+        if (! is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+    }
+
+    public function url(Media $media): string
+    {
+        return asset('storage/'.$media->file);
+    }
+
+    public function preview(Media $media): string
+    {
+        return asset('storage/'.($media->preview ?: $media->file));
+    }
+
+    public function thumbnail(Media $media): string
+    {
+        return asset('storage/'.($media->thumbnail ?: $media->file));
     }
 
     /**
-     * Retorna thumbnail.
+     * Remove mídia e todos os seus derivados (original, thumbnail, preview).
      */
-    public function thumbnail(
-        Media $media
-    ): string
+    public function delete(Media $media): void
     {
+        foreach (['file', 'thumbnail', 'preview'] as $field) {
 
-        if ($media->thumbnail) {
+            $value = $media->{$field};
 
-            return asset(
-                'storage/'.$media->thumbnail
-            );
-
-        }
-
-        return asset(
-            'storage/'.$media->file
-        );
-
-    }
-
-    /**
-     * Remove mídia.
-     */
-    public function delete(
-        Media $media
-    ): void
-    {
-
-        if (
-
-            Storage::disk('public')
-                ->exists($media->file)
-
-        ) {
-
-            Storage::disk('public')
-                ->delete($media->file);
-
-        }
-
-        if (
-
-            $media->thumbnail &&
-
-            Storage::disk('public')
-                ->exists($media->thumbnail)
-
-        ) {
-
-            Storage::disk('public')
-                ->delete($media->thumbnail);
-
-        }
-
-        if (
-
-            $media->preview &&
-
-            Storage::disk('public')
-                ->exists($media->preview)
-
-        ) {
-
-            Storage::disk('public')
-                ->delete($media->preview);
-
+            if ($value && Storage::disk('public')->exists($value)) {
+                Storage::disk('public')->delete($value);
+            }
         }
 
         $media->delete();
-
     }
-
 }

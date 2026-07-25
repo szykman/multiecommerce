@@ -28,6 +28,7 @@ class Product extends Model
 
         'stock',
         'active',
+        'has_variants',
 
     ];
 
@@ -35,6 +36,7 @@ class Product extends Model
 
         'promotion_start' => 'datetime',
         'promotion_end'   => 'datetime',
+        'has_variants'    => 'boolean',
 
     ];
 
@@ -78,6 +80,46 @@ public function gallery()
         ->orderBy('position');
 }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Variações
+    |--------------------------------------------------------------------------
+    */
+
+    public function options()
+    {
+        return $this->hasMany(ProductOption::class)
+            ->orderBy('position');
+    }
+
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    public function activeVariants()
+    {
+        return $this->variants()->where('active', true);
+    }
+
+    /**
+     * Preço "a partir de" quando o produto tem variantes — o menor
+     * preço entre as variantes ativas. Cai no preço normal do
+     * produto se não houver variantes.
+     */
+    public function getMinVariantPriceAttribute()
+    {
+        if (! $this->has_variants) {
+            return $this->price;
+        }
+
+        $min = $this->activeVariants()
+            ->orderBy('price')
+            ->value('price');
+
+        return $min ?? $this->price;
+    }
+
     public function reviews()
     {
         return $this->hasMany(ProductReview::class);
@@ -98,37 +140,55 @@ public function averageRating()
 
     public function getImageUrlAttribute()
     {
-        if (
-            $this->relationLoaded('media')
-                ? $this->media
-                : $this->media()->exists()
-        ) {
+        return $this->resolveImageUrl('file');
+    }
 
-            $media = $this->relationLoaded('media')
-                ? $this->media
-                : $this->media;
+    /**
+     * Versão pequena (300px, WEBP) — usada em grades/listagens
+     * (admin: biblioteca, galeria; storefront: cards de produto).
+     */
+    public function getImageThumbnailUrlAttribute()
+    {
+        return $this->resolveImageUrl('thumbnail');
+    }
 
-            if ($media && $media->file) {
+    /**
+     * Versão média (1200px, WEBP) — usada em exibições maiores
+     * (imagem principal do produto, banners de página CMS).
+     */
+    public function getImagePreviewUrlAttribute()
+    {
+        return $this->resolveImageUrl('preview');
+    }
 
-                return asset(
-                    'storage/' . $media->file
-                );
+    /**
+     * Resolve a URL da imagem do produto/página para um dado tamanho.
+     *
+     * Prioridade: mídia associada (media_id) no tamanho pedido
+     * -> mídia associada no arquivo original (fallback se o tamanho
+     * pedido ainda não foi gerado) -> coluna "image" legada
+     * -> placeholder.
+     */
+    protected function resolveImageUrl(string $size): string
+    {
+        $media = $this->media;
 
+        if ($media) {
+
+            $value = $size !== 'file'
+                ? ($media->{$size} ?: $media->file)
+                : $media->file;
+
+            if ($value) {
+                return asset('storage/'.$value);
             }
-
         }
 
         if ($this->image) {
-
-            return asset(
-                'storage/' . $this->image
-            );
-
+            return asset('storage/'.$this->image);
         }
 
-        return asset(
-            'images/no-image.png'
-        );
+        return asset('images/no-image.png');
     }
 
     /*

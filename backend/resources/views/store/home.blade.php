@@ -174,7 +174,7 @@ class="py-5">
 
 <img
 
-src="{{ asset('storage/'.$product->image) }}"
+src="{{ $product->image_thumbnail_url }}"
 
 class="card-img-top"
 

@@ -92,10 +92,10 @@
 
 <div id="media_preview">
 
-@if($page->image_url)
+@if($page->image_thumbnail_url)
 
 <img
-src="{{ $page->image_url }}"
+src="{{ $page->image_thumbnail_url }}"
 class="img-thumbnail"
 style="max-width:220px">
 

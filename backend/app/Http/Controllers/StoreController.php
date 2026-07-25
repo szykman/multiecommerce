@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\Category;
 use App\Models\StoreSetting;
+use Illuminate\Http\Request;
 
 class StoreController extends Controller
 {
@@ -207,7 +209,14 @@ $favorites = session()->get('favorites', []);
         ]);
 
 
-        $product = Product::with('gallery.media')
+        $product = Product::with([
+                'gallery.media',
+                'options.values',
+                'variants' => function ($q) {
+                    $q->where('active', true)
+                      ->with('optionValues');
+                },
+            ])
     ->where(
         'store_id',
         $store->id
@@ -306,7 +315,46 @@ $favorites = session()->get('favorites', []);
         ->get();
 
 
-        $cart = session()->get('cart', []);
+        $rawCart = session()->get('cart', []);
+
+        // Enriquece cada linha do carrinho com dados atuais do banco
+        // (miniatura, estoque disponivel agora, se o produto ainda
+        // existe/esta ativo) - o preco salvo na sessao e preservado
+        // como o preco no momento em que foi adicionado.
+        $cartItems = collect($rawCart)->map(function ($item, $key) {
+
+            $product = Product::where('id', $item['id'])
+                ->where('active', true)
+                ->first();
+
+            $variant = null;
+
+            if (! empty($item['variant_id'])) {
+                $variant = ProductVariant::find($item['variant_id']);
+            }
+
+            $currentStock = $variant
+                ? $variant->stock
+                : ($product->stock ?? 0);
+
+            return [
+                'key' => $key,
+                'id' => $item['id'],
+                'variant_id' => $item['variant_id'] ?? null,
+                'name' => $item['name'],
+                'price' => (float) $item['price'],
+                'qty' => (int) $item['qty'],
+                'subtotal' => (float) $item['price'] * (int) $item['qty'],
+                'image' => $product?->image_thumbnail_url,
+                'slug' => $product?->slug,
+                'current_stock' => $currentStock,
+                'available' => (bool) $product && ($variant ? $variant->active : true),
+                'exceeds_stock' => (int) $item['qty'] > $currentStock,
+            ];
+
+        })->values();
+
+        $cartTotal = $cartItems->sum('subtotal');
 
 
         return view(
@@ -316,17 +364,86 @@ $favorites = session()->get('favorites', []);
                 'settings',
                 'categories',
                 'cmsCategories',
-                'cart'
+                'cartItems',
+                'cartTotal'
             )
         );
     }
 
 
+    /**
+     * Atualiza a quantidade de um item do carrinho. Se a quantidade
+     * pedida exceder o estoque atual, e limitada automaticamente ao
+     * maximo disponivel.
+     */
+    public function updateCart(Request $request, $key)
+    {
+        $cart = session()->get('cart', []);
+
+        if (! isset($cart[$key])) {
+            return back()->with('error', 'Item nao encontrado no carrinho.');
+        }
+
+        $quantity = max(1, (int) $request->input('quantity', 1));
+
+        $availableStock = null;
+
+        if (! empty($cart[$key]['variant_id'])) {
+
+            $variant = ProductVariant::find($cart[$key]['variant_id']);
+            $availableStock = $variant?->stock;
+
+        } else {
+
+            $product = Product::find($cart[$key]['id']);
+            $availableStock = $product?->stock;
+
+        }
+
+        if ($availableStock !== null && $quantity > $availableStock) {
+            $quantity = max(1, $availableStock);
+        }
+
+        $cart[$key]['qty'] = $quantity;
+
+        session()->put('cart', $cart);
+
+        return back()->with('success', 'Carrinho atualizado.');
+    }
+
+
+    /**
+     * Remove um item especifico do carrinho, pela chave composta
+     * (produto ou produto-variante), nao pelo ID do produto sozinho
+     * - necessario porque duas variantes do mesmo produto podem
+     * coexistir como linhas separadas.
+     */
+    public function removeFromCart($key)
+    {
+        $cart = session()->get('cart', []);
+
+        unset($cart[$key]);
+
+        session()->put('cart', $cart);
+
+        return back()->with('success', 'Item removido do carrinho.');
+    }
+
+
+    /**
+     * Esvazia o carrinho inteiro.
+     */
+    public function clearCart()
+    {
+        session()->forget('cart');
+
+        return back()->with('success', 'Carrinho esvaziado.');
+    }
 
 
 
 
-    public function addToCart($slug)
+    public function addToCart(Request $request, $slug)
     {
         $tenant = app(\App\Services\TenantManager::class);
 
@@ -341,26 +458,70 @@ $favorites = session()->get('favorites', []);
         ->firstOrFail();
 
 
+        $quantity = max(1, (int) $request->input('quantity', 1));
+
+        $variant = null;
+
+        if ($request->filled('variant_id')) {
+
+            $variant = ProductVariant::where('id', $request->input('variant_id'))
+                ->where('product_id', $product->id)
+                ->where('active', true)
+                ->first();
+
+            if (! $variant) {
+                return back()->with(
+                    'error',
+                    'A variação selecionada não está disponível.'
+                );
+            }
+        }
+
+        // Se o produto tem variação, exige que uma tenha sido escolhida
+        if ($product->has_variants && ! $variant) {
+            return back()->with(
+                'error',
+                'Selecione as opções do produto antes de adicionar ao carrinho.'
+            );
+        }
+
+        $availableStock = $variant ? $variant->stock : $product->stock;
+
+        if ($availableStock < 1) {
+            return back()->with(
+                'error',
+                'Produto sem estoque disponível.'
+            );
+        }
+
+        $price = $variant
+            ? ($variant->sale_price ?: $variant->price)
+            : $product->current_price;
+
+        // Chave composta (produto + variante) para que combinações
+        // diferentes do mesmo produto virem linhas separadas no carrinho.
+        $cartKey = $variant
+            ? $product->id.'-'.$variant->id
+            : (string) $product->id;
+
         $cart = session()->get('cart', []);
 
+        $newQty = ($cart[$cartKey]['qty'] ?? 0) + $quantity;
 
-        if(isset($cart[$product->id])){
-
-            $cart[$product->id]['qty']++;
-
-        }else{
-
-            $cart[$product->id] = [
-
-                'id'=>$product->id,
-                'name'=>$product->name,
-                'price'=>$product->price,
-                'image'=>$product->image,
-                'qty'=>1
-
-            ];
-
+        if ($newQty > $availableStock) {
+            $newQty = $availableStock;
         }
+
+        $cart[$cartKey] = [
+
+            'id' => $product->id,
+            'variant_id' => $variant?->id,
+            'name' => $product->name.($variant ? ' — '.$variant->optionValues->pluck('value')->implode(' / ') : ''),
+            'price' => $price,
+            'image' => $product->image,
+            'qty' => $newQty,
+
+        ];
 
 
         session()->put('cart',$cart);

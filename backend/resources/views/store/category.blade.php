@@ -116,7 +116,7 @@ Maior preço
 @if($product->image)
 
 <img
-src="{{ asset('storage/'.$product->image) }}"
+src="{{ $product->image_thumbnail_url }}"
 class="card-img-top"
 style="height:220px;object-fit:cover;">
 
