@@ -119,8 +119,8 @@ Páginas
 
 
 
-<a href="{{ route('orders.index') }}"
-class="list-group-item list-group-item-action">
+<a href="#"
+class="list-group-item list-group-item-action disabled">
 
 <i class="bi bi-receipt"></i>
 
@@ -128,8 +128,8 @@ Pedidos
 
 </a>
 
-<a href="{{ route('customers.index') }}"
-class="list-group-item list-group-item-action">
+<a href="#"
+class="list-group-item list-group-item-action disabled">
 
 <i class="bi bi-people"></i>
 

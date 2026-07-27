@@ -83,7 +83,8 @@
                 id="phone_number"
                 class="form-control"
                 placeholder="(11) 99999-9999"
-                value="{{ old('phone_number') }}">
+                value="{{ old('phone_number') }}"
+                required>
 
         </div>
 

@@ -47,35 +47,13 @@ public function index()
     ->where('type','cms')
     ->count();
 
-    $customers = \App\Models\Customer::where(
-        'store_id',
-        $store
-    )
-    ->count();
-
-    $orders = \App\Models\Order::where(
-        'store_id',
-        $store
-    )
-    ->count();
-
-    $pendingOrders = \App\Models\Order::where(
-        'store_id',
-        $store
-    )
-    ->where('status', 'pending')
-    ->count();
-
     return view(
         'admin.dashboard',
         compact(
             'products',
             'pages',
             'storeCategories',
-            'cmsCategories',
-            'customers',
-            'orders',
-            'pendingOrders'
+            'cmsCategories'
         )
     );
 }

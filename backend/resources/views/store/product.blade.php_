@@ -316,6 +316,15 @@ style="max-width:120px;">
 
 <div class="d-grid gap-2">
 
+<button
+class="btn btn-primary btn-lg">
+
+<i class="bi bi-bag-check"></i>
+
+Comprar Agora
+
+</button>
+
 <form
 id="add_to_cart_form"
 method="POST"
@@ -325,24 +334,7 @@ action="{{ route('store.cart.add',$product->slug) }}">
 
 <input type="hidden" name="variant_id" id="variant_id_input" value="">
 
-<div class="d-grid gap-2">
-
 <button
-type="submit"
-name="buy_now"
-value="1"
-id="buy_now_btn"
-class="btn btn-primary btn-lg"
-{{ $product->has_variants ? 'disabled' : '' }}>
-
-<i class="bi bi-bag-check"></i>
-
-Comprar Agora
-
-</button>
-
-<button
-type="submit"
 id="add_to_cart_btn"
 class="btn btn-outline-secondary w-100"
 {{ $product->has_variants ? 'disabled' : '' }}>
@@ -352,8 +344,6 @@ class="btn btn-outline-secondary w-100"
 Adicionar ao Carrinho
 
 </button>
-
-</div>
 
 </form>
 
@@ -562,7 +552,6 @@ const selected = {};
 const variantFeedback = document.getElementById('variant_feedback');
 const variantIdInput = document.getElementById('variant_id_input');
 const addToCartBtn = document.getElementById('add_to_cart_btn');
-const buyNowBtn = document.getElementById('buy_now_btn');
 const priceDisplay = document.getElementById('price_display');
 const stockBadge = document.getElementById('stock_badge');
 const quantityInput = document.getElementById('quantity_input');
@@ -645,7 +634,6 @@ function updateSelectionUI(){
 
         variantIdInput.value = '';
         addToCartBtn.disabled = true;
-        buyNowBtn.disabled = true;
 
         const missing = productOptions.length - Object.keys(selected).length;
 
@@ -676,7 +664,6 @@ function updateSelectionUI(){
 
         stockBadge.innerHTML = '<span class="badge bg-success"><i class="bi bi-check-circle"></i> Em estoque</span>';
         addToCartBtn.disabled = false;
-        buyNowBtn.disabled = false;
         quantityInput.max = variant.stock;
         variantFeedback.textContent = '';
 
@@ -684,7 +671,6 @@ function updateSelectionUI(){
 
         stockBadge.innerHTML = '<span class="badge bg-danger">Produto indisponível</span>';
         addToCartBtn.disabled = true;
-        buyNowBtn.disabled = true;
         variantFeedback.textContent = 'Esta combinação está sem estoque.';
 
     }

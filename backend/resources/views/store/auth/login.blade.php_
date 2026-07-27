@@ -70,10 +70,6 @@
 </form>
 
 <div class="text-center mt-3">
-    <a href="{{ route('store.password.request') }}" class="small">Esqueci minha senha</a>
-</div>
-
-<div class="text-center mt-2">
     <span class="text-muted">Ainda não tem conta?</span>
     <a href="{{ route('store.register') }}">Cadastre-se</a>
 </div>

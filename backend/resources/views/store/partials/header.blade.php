@@ -8,7 +8,7 @@
 <a href="/" class="navbar-brand d-flex align-items-center">
 
 
-@if($settings->logo)
+@if(isset($settings) && $settings->logo)
 
 <img
 src="{{ asset('storage/'.$settings->logo) }}"
@@ -20,7 +20,7 @@ class="me-2 animate">
 
 <strong>
 
-{{ $store->name }}
+{{ $store->name ?? config('app.name') }}
 
 </strong>
 

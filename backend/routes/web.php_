@@ -5,8 +5,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FavoriteController;
 use App\Http\Controllers\StoreController;
 use App\Http\Controllers\Store\CustomerAuthController;
-use App\Http\Controllers\Store\CheckoutController;
-use App\Http\Controllers\Store\AddressController;
 
 use App\Services\TenantManager;
 
@@ -18,8 +16,6 @@ use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\StoreSettingsController;
 use App\Http\Controllers\Admin\PageController;
-use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
-use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 
 
 /*
@@ -151,30 +147,6 @@ Route::middleware('tenant')->group(function () {
     )
     ->name('store.logout');
 
-    Route::get(
-        '/cliente/esqueci-senha',
-        [CustomerAuthController::class,'forgotPasswordForm']
-    )
-    ->name('store.password.request');
-
-    Route::post(
-        '/cliente/esqueci-senha',
-        [CustomerAuthController::class,'sendResetLink']
-    )
-    ->name('store.password.email');
-
-    Route::get(
-        '/cliente/redefinir-senha/{token}',
-        [CustomerAuthController::class,'resetPasswordForm']
-    )
-    ->name('store.password.reset');
-
-    Route::post(
-        '/cliente/redefinir-senha',
-        [CustomerAuthController::class,'resetPassword']
-    )
-    ->name('store.password.update');
-
     Route::middleware('auth:customer')->group(function () {
 
         Route::get(
@@ -182,60 +154,6 @@ Route::middleware('tenant')->group(function () {
             [CustomerAuthController::class,'account']
         )
         ->name('store.account');
-
-        Route::put(
-            '/cliente/conta',
-            [CustomerAuthController::class,'updateAccount']
-        )
-        ->name('store.account.update');
-
-        Route::get(
-            '/cliente/enderecos',
-            [AddressController::class,'index']
-        )
-        ->name('store.addresses');
-
-        Route::delete(
-            '/cliente/enderecos/{address}',
-            [AddressController::class,'destroy']
-        )
-        ->name('store.addresses.destroy');
-
-        Route::get(
-            '/checkout/endereco',
-            [CheckoutController::class,'address']
-        )
-        ->name('store.checkout.address');
-
-        Route::post(
-            '/checkout/endereco',
-            [CheckoutController::class,'storeAddress']
-        )
-        ->name('store.checkout.address.store');
-
-        Route::get(
-            '/checkout/revisao',
-            [CheckoutController::class,'review']
-        )
-        ->name('store.checkout.review');
-
-        Route::post(
-            '/checkout/finalizar',
-            [CheckoutController::class,'placeOrder']
-        )
-        ->name('store.checkout.place');
-
-        Route::get(
-            '/checkout/confirmacao/{order}',
-            [CheckoutController::class,'confirmation']
-        )
-        ->name('store.checkout.confirmation');
-
-        Route::get(
-            '/cliente/pedidos',
-            [CheckoutController::class,'myOrders']
-        )
-        ->name('store.orders');
 
     });
 
@@ -383,38 +301,6 @@ Route::middleware([
         'pages',
         PageController::class
     );
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Clientes
-    |--------------------------------------------------------------------------
-    */
-
-    Route::resource(
-        'customers',
-        AdminCustomerController::class
-    )
-    ->only(['index', 'show']);
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | Pedidos
-    |--------------------------------------------------------------------------
-    */
-
-    Route::resource(
-        'orders',
-        AdminOrderController::class
-    )
-    ->only(['index', 'show']);
-
-    Route::patch(
-        'orders/{order}/status',
-        [AdminOrderController::class, 'updateStatus']
-    )
-    ->name('orders.status');
 
 
 

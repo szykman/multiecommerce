@@ -527,14 +527,6 @@ $favorites = session()->get('favorites', []);
         session()->put('cart',$cart);
 
 
-        if ($request->boolean('buy_now')) {
-
-            return redirect()
-                ->route('store.checkout.address')
-                ->with('success', 'Produto adicionado. Finalize seu pedido.');
-        }
-
-
         return redirect()
             ->route('store.cart')
             ->with('success','Produto adicionado ao carrinho.');

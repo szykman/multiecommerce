@@ -160,10 +160,10 @@
 
         </form>
 
-        <a href="{{ route('store.checkout.address') }}" class="btn btn-primary">
+        <button type="button" class="btn btn-primary" disabled title="Em breve">
             <i class="bi bi-bag-check"></i>
             Finalizar Compra
-        </a>
+        </button>
 
     </div>
 

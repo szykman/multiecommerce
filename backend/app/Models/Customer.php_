@@ -50,29 +50,4 @@ class Customer extends Authenticatable
     {
         return $this->belongsTo(Store::class);
     }
-
-    public function orders()
-    {
-        return $this->hasMany(Order::class);
-    }
-
-    public function addresses()
-    {
-        return $this->hasMany(Address::class);
-    }
-
-    /**
-     * Sobrescreve o envio padrão do Laravel para usar nossa rota
-     * própria (store.password.reset) e uma notification dedicada,
-     * já que o customer usa um broker separado ("customers").
-     */
-    public function sendPasswordResetNotification($token): void
-    {
-        $url = route('store.password.reset', [
-            'token' => $token,
-            'email' => $this->email,
-        ]);
-
-        $this->notify(new \App\Notifications\CustomerResetPassword($url));
-    }
 }

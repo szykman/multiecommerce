@@ -33,14 +33,9 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->redirectGuestsTo(function (Request $request) {
 
-            // Rotas de cliente (checkout, conta) redirecionam pro
-            // login da LOJA; qualquer outra rota protegida (admin)
-            // mantém o comportamento original.
-            if ($request->is('checkout/*') || $request->is('cliente/*')) {
-                return route('store.login');
-            }
 
             return route('admin.login');
+
 
         });
 

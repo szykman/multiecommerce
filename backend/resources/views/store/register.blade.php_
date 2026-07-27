@@ -91,8 +91,6 @@
             Usaremos este número para enviar a confirmação da compra também por WhatsApp.
         </small>
 
-        <div id="phone_error" class="text-danger small mt-1"></div>
-
         <input type="hidden" name="phone" id="phone_hidden" value="{{ old('phone') }}">
 
     </div>
@@ -151,96 +149,24 @@
 
 <script>
 
-// Combina país + número num único campo "phone" antes do submit.
-// Para o Brasil (+55), aplica máscara e exige o formato de celular:
-// DDD (2 dígitos) + 9 dígitos começando com 9 -> (11) 91234-5678
+// Combina país + número num único campo "phone" antes do submit
 const phoneCountry = document.getElementById('phone_country');
 const phoneNumber = document.getElementById('phone_number');
 const phoneHidden = document.getElementById('phone_hidden');
-const phoneError = document.getElementById('phone_error');
-
-function isBrazil(){
-    return phoneCountry.value === '+55';
-}
-
-function maskBrazilPhone(value){
-
-    let digits = value.replace(/\D/g, '').slice(0, 11);
-
-    if(digits.length <= 2){
-        return digits;
-    }
-
-    if(digits.length <= 7){
-        return '(' + digits.slice(0,2) + ') ' + digits.slice(2);
-    }
-
-    return '(' + digits.slice(0,2) + ') ' + digits.slice(2,7) + '-' + digits.slice(7);
-}
-
-function applyPlaceholder(){
-    phoneNumber.placeholder = isBrazil()
-        ? '(11) 91234-5678'
-        : 'Número de telefone';
-}
-
-phoneNumber.addEventListener('input', function(){
-
-    if(isBrazil()){
-        this.value = maskBrazilPhone(this.value);
-    }
-
-    phoneError.textContent = '';
-});
-
-phoneCountry.addEventListener('change', function(){
-    phoneNumber.value = '';
-    applyPlaceholder();
-    phoneError.textContent = '';
-});
-
-applyPlaceholder();
 
 function updateHiddenPhone(){
-
-    if(!phoneNumber.value.trim()){
-        phoneHidden.value = '';
-        return true;
-    }
-
-    if(isBrazil()){
-
-        const digits = phoneNumber.value.replace(/\D/g, '');
-
-        // DDD (2 dígitos) + celular com 9 dígitos, começando com 9
-        if(digits.length !== 11 || digits[2] !== '9'){
-
-            phoneError.textContent = 'Informe um celular brasileiro válido, ex: (11) 91234-5678.';
-            return false;
-        }
-
-        const ddd = digits.slice(0,2);
-        const rest = digits.slice(2);
-
-        phoneHidden.value = '+55 ' + ddd + ' ' + rest.slice(0,5) + '-' + rest.slice(5);
-
-    }else{
-
+    if(phoneNumber.value.trim()){
         phoneHidden.value = phoneCountry.value + ' ' + phoneNumber.value.trim();
+    }else{
+        phoneHidden.value = '';
     }
-
-    return true;
 }
 
+phoneCountry.addEventListener('change', updateHiddenPhone);
+phoneNumber.addEventListener('input', updateHiddenPhone);
+
 document.querySelector('form[action="{{ route('store.register') }}"]')
-    .addEventListener('submit', function(e){
-
-        if(!updateHiddenPhone()){
-            e.preventDefault();
-            phoneNumber.focus();
-        }
-
-    });
+    .addEventListener('submit', updateHiddenPhone);
 
 </script>
 
