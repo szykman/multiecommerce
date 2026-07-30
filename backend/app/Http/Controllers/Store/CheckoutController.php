@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Address;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Payment;
+use App\Models\StorePaymentMethod;
+use App\Services\Payments\PaymentGatewayFactory;
 use App\Services\TenantManager;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -165,8 +168,120 @@ class CheckoutController extends Controller
         session()->forget('cart');
 
         return redirect()
+            ->route('store.checkout.payment', $order)
+            ->with('success', 'Pedido criado! Falta escolher a forma de pagamento.');
+    }
+
+    /**
+     * Passo 4: escolher a forma de pagamento habilitada pela loja.
+     */
+    public function choosePayment(Order $order)
+    {
+        $customer = Auth::guard('customer')->user();
+
+        abort_if($order->customer_id !== $customer->id, 403);
+
+        $methods = StorePaymentMethod::where('store_id', $order->store_id)
+            ->where('enabled', true)
+            ->orderBy('position')
+            ->get();
+
+        return view('store.checkout.payment', compact('order', 'methods'));
+    }
+
+    /**
+     * Gera a cobrança no gateway escolhido e manda para a tela de
+     * pagamento (QR/copia-e-cola no caso do PIX manual).
+     */
+    public function selectPayment(Request $request, Order $order)
+    {
+        $customer = Auth::guard('customer')->user();
+
+        abort_if($order->customer_id !== $customer->id, 403);
+
+        $request->validate([
+            'provider' => 'required|string',
+        ]);
+
+        $method = StorePaymentMethod::where('store_id', $order->store_id)
+            ->where('provider', $request->provider)
+            ->where('enabled', true)
+            ->first();
+
+        if (! $method) {
+            return back()->with('error', 'Forma de pagamento indisponível.');
+        }
+
+        try {
+
+            $gateway = PaymentGatewayFactory::make($method->provider);
+            $chargeData = $gateway->charge($order, $method);
+
+        } catch (\Throwable $e) {
+
+            return back()->with('error', 'Não foi possível gerar a cobrança: '.$e->getMessage());
+        }
+
+        $payment = Payment::create([
+            'order_id' => $order->id,
+            'provider' => $method->provider,
+            'reference' => $chargeData['txid'] ?? null,
+            'amount' => $order->total,
+            'status' => 'pending',
+            'raw_response' => $chargeData,
+        ]);
+
+        $order->update(['payment_method' => $method->provider]);
+
+        return redirect()->route('store.checkout.pay', $order);
+    }
+
+    /**
+     * Tela de pagamento (QR + copia-e-cola no PIX manual) + botão
+     * "Já paguei".
+     */
+    public function showPayment(Order $order)
+    {
+        $customer = Auth::guard('customer')->user();
+
+        abort_if($order->customer_id !== $customer->id, 403);
+
+        $payment = Payment::where('order_id', $order->id)
+            ->latest()
+            ->first();
+
+        if (! $payment) {
+            return redirect()->route('store.checkout.payment', $order);
+        }
+
+        return view('store.checkout.pay', compact('order', 'payment'));
+    }
+
+    /**
+     * O cliente clica "Já paguei" — auto-declaração, ainda precisa
+     * o lojista conferir e confirmar manualmente no admin.
+     */
+    public function confirmPaidByCustomer(Order $order)
+    {
+        $customer = Auth::guard('customer')->user();
+
+        abort_if($order->customer_id !== $customer->id, 403);
+
+        $payment = Payment::where('order_id', $order->id)->latest()->first();
+
+        if ($payment && $payment->status === 'pending') {
+
+            $payment->update([
+                'status' => 'awaiting_confirmation',
+                'confirmed_by' => 'customer',
+            ]);
+
+            $order->update(['status' => 'awaiting_confirmation']);
+        }
+
+        return redirect()
             ->route('store.checkout.confirmation', $order)
-            ->with('success', 'Pedido realizado com sucesso!');
+            ->with('success', 'Avisamos a loja! Assim que confirmarem o recebimento, seu pedido será processado.');
     }
 
     public function confirmation(Order $order)

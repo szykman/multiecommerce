@@ -138,6 +138,14 @@ Clientes
 </a>
 
 
+    <a class="list-group-item list-group-item-action" href="{{ route('payment-settings.edit') }}">
+
+<i class="bi bi-qr-code"></i>
+
+Formas de Pagamento
+
+</a>
+
     <a class="list-group-item list-group-item-action" href="{{ route('settings.edit') }}">
 
 <i class="bi bi-gear"></i>

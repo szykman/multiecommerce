@@ -85,6 +85,7 @@
 
                 <select name="status" class="form-select mb-2">
                     <option value="pending" @selected($order->status=='pending')>Aguardando pagamento</option>
+                    <option value="awaiting_confirmation" @selected($order->status=='awaiting_confirmation')>Aguardando confirmação</option>
                     <option value="paid" @selected($order->status=='paid')>Pago</option>
                     <option value="cancelled" @selected($order->status=='cancelled')>Cancelado</option>
                 </select>
@@ -97,6 +98,65 @@
 
         </div>
     </div>
+
+    @if($payment)
+    <div class="card mt-3">
+        <div class="card-body">
+
+            <h5 class="card-title">
+                <i class="bi bi-qr-code"></i>
+                Pagamento
+            </h5>
+
+            <p class="mb-1"><strong>Forma:</strong> {{ ucfirst($payment->provider) }}</p>
+            <p class="mb-1"><strong>Valor:</strong> R$ {{ number_format($payment->amount,2,',','.') }}</p>
+            <p class="mb-1">
+                <strong>Status:</strong>
+                <span class="badge bg-{{ $payment->status === 'confirmed' ? 'success' : ($payment->status === 'awaiting_confirmation' ? 'warning' : 'secondary') }}">
+                    {{ match($payment->status) {
+                        'pending' => 'Aguardando pagamento',
+                        'awaiting_confirmation' => 'Cliente avisou que pagou',
+                        'confirmed' => 'Confirmado',
+                        'cancelled' => 'Cancelado',
+                        default => $payment->status,
+                    } }}
+                </span>
+            </p>
+
+            @if($payment->reference)
+            <p class="mb-3 small text-muted">Referência: {{ $payment->reference }}</p>
+            @endif
+
+            @if($payment->status !== 'confirmed')
+
+            <form
+                method="POST"
+                action="{{ route('orders.payment.confirm', $order) }}"
+                onsubmit="return confirm('Confirma que o pagamento foi recebido? O pedido será marcado como pago.')">
+
+                @csrf
+
+                <button type="submit" class="btn btn-success btn-sm w-100">
+                    <i class="bi bi-check-circle"></i>
+                    Confirmar recebimento do pagamento
+                </button>
+
+            </form>
+
+            @else
+
+            <p class="text-success small mb-0">
+                <i class="bi bi-check-circle"></i>
+                Confirmado em {{ $payment->confirmed_at?->format('d/m/Y H:i') }}
+            </p>
+
+            @endif
+
+        </div>
+    </div>
+    @endif
+
+</div>
 
 </div>
 

@@ -49,6 +49,7 @@ class Order extends Model
     {
         return match ($this->status) {
             'pending' => 'Aguardando pagamento',
+            'awaiting_confirmation' => 'Aguardando confirmação da loja',
             'paid' => 'Pago',
             'cancelled' => 'Cancelado',
             default => ucfirst($this->status),

@@ -54,11 +54,23 @@
     </div>
 </div>
 
+@if($order->status === 'pending')
+<div class="alert alert-warning mt-4">
+    <i class="bi bi-hourglass-split"></i>
+    Falta escolher/concluir a forma de pagamento.
+    <a href="{{ route('store.checkout.payment', $order) }}">Ir para pagamento</a>
+</div>
+@elseif($order->status === 'awaiting_confirmation')
 <div class="alert alert-info mt-4">
     <i class="bi bi-info-circle"></i>
-    O pagamento via PIX ainda será habilitado. Assim que disponível,
-    você receberá as instruções por aqui e por WhatsApp/e-mail.
+    Recebemos seu aviso de pagamento. A loja vai conferir e confirmar em breve.
 </div>
+@elseif($order->status === 'paid')
+<div class="alert alert-success mt-4">
+    <i class="bi bi-check-circle"></i>
+    Pagamento confirmado! Seu pedido está sendo preparado.
+</div>
+@endif
 
 <div class="text-center">
     <a href="{{ url('/') }}" class="btn btn-outline-primary">

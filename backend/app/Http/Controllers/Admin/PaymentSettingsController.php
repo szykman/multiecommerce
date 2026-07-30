@@ -1,0 +1,49 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Models\StorePaymentMethod;
+use Illuminate\Http\Request;
+
+class PaymentSettingsController extends Controller
+{
+    public function edit()
+    {
+        $storeId = auth()->user()->store_id;
+
+        $pixMethod = StorePaymentMethod::firstOrNew([
+            'store_id' => $storeId,
+            'provider' => 'pix_manual',
+        ]);
+
+        return view('admin.payment_settings.edit', compact('pixMethod'));
+    }
+
+    public function update(Request $request)
+    {
+        $storeId = auth()->user()->store_id;
+
+        $data = $request->validate([
+            'pix_key' => 'required|string|max:140',
+            'pix_key_type' => 'required|in:cpf,cnpj,email,phone,random',
+            'holder_name' => 'required|string|max:100',
+            'city' => 'required|string|max:60',
+        ]);
+
+        StorePaymentMethod::updateOrCreate(
+            ['store_id' => $storeId, 'provider' => 'pix_manual'],
+            [
+                'enabled' => $request->boolean('enabled'),
+                'credentials' => [
+                    'pix_key' => $data['pix_key'],
+                    'pix_key_type' => $data['pix_key_type'],
+                    'holder_name' => $data['holder_name'],
+                    'city' => $data['city'],
+                ],
+            ]
+        );
+
+        return back()->with('success', 'Configuração de pagamento salva.');
+    }
+}

@@ -28,52 +28,11 @@ $this->app->singleton(
      */
     public function boot(): void
     {
-
-    View::composer('store.*', function($view){
-
-        $tenant = app(\App\Services\TenantManager::class);
-
-        $store = $tenant->getStore();
-
-        $cart = session()->get('cart', []);
-
-        $cartCount = collect($cart)->sum('qty');
-
-        $settings = null;
-        $categories = collect();
-        $cmsCategories = collect();
-
-        if ($store) {
-
-            $settings = \App\Models\StoreSetting::firstOrCreate([
-                'store_id' => $store->id
-            ]);
-
-            $categories = \App\Models\Category::where('store_id', $store->id)
-                ->where('active', 1)
-                ->where('type', 'store')
-                ->orderBy('name')
-                ->get();
-
-            $cmsCategories = \App\Models\Category::where('store_id', $store->id)
-                ->where('active', 1)
-                ->where('type', 'cms')
-                ->with(['products' => function ($q) {
-                    $q->where('active', 1)->orderBy('name');
-                }])
-                ->orderBy('name')
-                ->get();
-        }
-
-        $view->with([
-            'store' => $store,
-            'settings' => $settings,
-            'categories' => $categories,
-            'cmsCategories' => $cmsCategories,
-            'cartCount' => $cartCount,
-        ]);
-
-    });
-
+ Paginator::useBootstrapFive();
+        // A lógica de composer das views do storefront (store/settings/
+        // categorias/cmsCategories/cartCount) foi movida para
+        // App\Providers\StoreViewServiceProvider, para manter este
+        // provider genérico e a lógica da loja centralizada num
+        // único lugar dedicado.
     }
 }

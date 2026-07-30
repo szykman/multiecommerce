@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\StoreSettingsController;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\CustomerController as AdminCustomerController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\PaymentSettingsController;
 
 
 /*
@@ -164,7 +165,7 @@ Route::middleware('tenant')->group(function () {
     ->name('store.password.email');
 
     Route::get(
-        '/cliente/redefinir-senha/{token}',
+        '/cliente/redefinir-senha/{token}/{email}',
         [CustomerAuthController::class,'resetPasswordForm']
     )
     ->name('store.password.reset');
@@ -230,6 +231,30 @@ Route::middleware('tenant')->group(function () {
             [CheckoutController::class,'confirmation']
         )
         ->name('store.checkout.confirmation');
+
+        Route::get(
+            '/checkout/pagamento/{order}',
+            [CheckoutController::class,'choosePayment']
+        )
+        ->name('store.checkout.payment');
+
+        Route::post(
+            '/checkout/pagamento/{order}',
+            [CheckoutController::class,'selectPayment']
+        )
+        ->name('store.checkout.payment.select');
+
+        Route::get(
+            '/checkout/pagar/{order}',
+            [CheckoutController::class,'showPayment']
+        )
+        ->name('store.checkout.pay');
+
+        Route::post(
+            '/checkout/pagar/{order}/confirmar',
+            [CheckoutController::class,'confirmPaidByCustomer']
+        )
+        ->name('store.checkout.payment.confirm');
 
         Route::get(
             '/cliente/pedidos',
@@ -415,6 +440,31 @@ Route::middleware([
         [AdminOrderController::class, 'updateStatus']
     )
     ->name('orders.status');
+
+    Route::post(
+        'orders/{order}/confirm-payment',
+        [AdminOrderController::class, 'confirmPayment']
+    )
+    ->name('orders.payment.confirm');
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Formas de Pagamento
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        'payment-settings',
+        [PaymentSettingsController::class, 'edit']
+    )
+    ->name('payment-settings.edit');
+
+    Route::put(
+        'payment-settings',
+        [PaymentSettingsController::class, 'update']
+    )
+    ->name('payment-settings.update');
 
 
 
