@@ -116,10 +116,9 @@
         </div>
 
         <p class="text-muted small">
-            Um único Access Token, mas você escolhe quais formas
-            oferecer: PIX e Boleto ficam dentro da própria loja
-            (confirmação automática via webhook); Cartão redireciona
-            o cliente pro ambiente seguro do Mercado Pago.
+            PIX via Mercado Pago — a confirmação é <strong>automática</strong>
+            (webhook), o pedido muda pra "Pago" sozinho assim que o
+            cliente paga, sem você precisar confirmar manualmente.
         </p>
 
         <form method="POST" action="{{ route('payment-settings.mercadopago.update') }}">
@@ -127,42 +126,16 @@
             @csrf
             @method('PUT')
 
-            <div class="form-check form-switch mb-2">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    name="mp_enable_pix"
-                    id="mp_enable_pix"
-                    value="1"
-                    {{ $mpPixEnabled ? 'checked' : '' }}>
-                <label class="form-check-label" for="mp_enable_pix">
-                    PIX (dentro da loja, confirmação automática)
-                </label>
-            </div>
-
-            <div class="form-check form-switch mb-2">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    name="mp_enable_boleto"
-                    id="mp_enable_boleto"
-                    value="1"
-                    {{ $mpBoletoEnabled ? 'checked' : '' }}>
-                <label class="form-check-label" for="mp_enable_boleto">
-                    Boleto (dentro da loja, confirmação automática)
-                </label>
-            </div>
-
             <div class="form-check form-switch mb-3">
                 <input
                     class="form-check-input"
                     type="checkbox"
-                    name="mp_enable_checkout_pro"
-                    id="mp_enable_checkout_pro"
+                    name="mp_enabled"
+                    id="mp_enabled"
                     value="1"
-                    {{ $mpCheckoutProEnabled ? 'checked' : '' }}>
-                <label class="form-check-label" for="mp_enable_checkout_pro">
-                    Cartão e outros pagamentos (redireciona pro Mercado Pago)
+                    {{ $mercadoPagoMethod->enabled ? 'checked' : '' }}>
+                <label class="form-check-label" for="mp_enabled">
+                    Ativar Mercado Pago nesta loja
                 </label>
             </div>
 

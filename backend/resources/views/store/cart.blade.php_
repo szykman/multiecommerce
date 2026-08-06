@@ -296,10 +296,9 @@ document.getElementById('simulate_btn').addEventListener('click', function(){
                 return;
             }
 
-            let html = '<p class="small text-muted mb-2">Escolha uma opção — sua escolha fica salva quando você entrar na conta:</p>';
-            html += '<div id="simulate_options">';
+            let html = '<ul class="list-group">';
 
-            data.options.forEach(function(opt, index){
+            data.options.forEach(function(opt){
 
                 const price = opt.price > 0
                     ? 'R$ ' + opt.price.toFixed(2).replace('.', ',')
@@ -309,57 +308,15 @@ document.getElementById('simulate_btn').addEventListener('click', function(){
                     ? ' <span class="text-muted small">(até ' + opt.estimated_days + ' dias)</span>'
                     : '';
 
-                html += '<label class="d-flex justify-content-between align-items-center border rounded p-2 mb-2" style="cursor:pointer;">'
-                    + '<span>'
-                    + '<input type="radio" name="simulate_choice" class="form-check-input me-2 simulate-option" '
-                    + 'data-provider="' + opt.provider + '" '
-                    + 'data-name="' + opt.name.replace(/"/g,'&quot;') + '" '
-                    + 'data-price="' + opt.price + '" '
-                    + 'data-days="' + (opt.estimated_days || '') + '">'
-                    + opt.name + days
-                    + '</span>'
+                html += '<li class="list-group-item d-flex justify-content-between align-items-center">'
+                    + '<span>' + opt.name + days + '</span>'
                     + '<strong>' + price + '</strong>'
-                    + '</label>';
+                    + '</li>';
             });
 
-            html += '</div>';
-            html += '<div id="simulate_saved" class="text-success small mt-1" style="display:none;"><i class="bi bi-check-circle"></i> Escolha salva.</div>';
+            html += '</ul>';
 
             resultDiv.innerHTML = html;
-
-            // Ao escolher uma opção, salva na sessão imediatamente —
-            // assim, se o cliente logar ou clicar em "Comprar Agora"
-            // depois, essa escolha já aparece pré-selecionada no checkout.
-            document.querySelectorAll('.simulate-option').forEach(function(radio){
-
-                radio.addEventListener('change', function(){
-
-                    fetch("{{ route('store.shipping.select') }}", {
-                        method: 'POST',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            zipcode: cep,
-                            provider: this.dataset.provider,
-                            name: this.dataset.name,
-                            price: this.dataset.price,
-                            estimated_days: this.dataset.days || null,
-                        }),
-                    })
-                    .then(function(r){ return r.json(); })
-                    .then(function(){
-                        document.getElementById('simulate_saved').style.display = '';
-                    })
-                    .catch(function(err){
-                        console.error('Erro ao salvar escolha de frete:', err);
-                    });
-
-                });
-
-            });
 
         })
         .catch(function(err){

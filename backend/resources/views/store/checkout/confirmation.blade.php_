@@ -34,16 +34,6 @@
         </table>
 
         <div class="d-flex justify-content-between mt-3">
-            <span>Subtotal</span>
-            <span>R$ {{ number_format($order->subtotal, 2, ',', '.') }}</span>
-        </div>
-
-        <div class="d-flex justify-content-between">
-            <span>Frete @if($order->shipping_method_name)<small class="text-muted">({{ $order->shipping_method_name }})</small>@endif</span>
-            <span>{{ $order->shipping_cost > 0 ? 'R$ '.number_format($order->shipping_cost,2,',','.') : 'Grátis' }}</span>
-        </div>
-
-        <div class="d-flex justify-content-between mt-2">
             <strong>Total</strong>
             <strong class="fs-5 text-primary">R$ {{ number_format($order->total, 2, ',', '.') }}</strong>
         </div>

@@ -131,39 +131,6 @@ value="{{ old('document',$settings->document ?? '') }}">
 
 </div>
 
-<div class="col-md-3 mb-3">
-
-<label><strong>CEP de Origem (frete)</label></strong>
-
-<input
-type="text"
-class="form-control"
-name="origin_zipcode"
-placeholder="00000-000"
-maxlength="9"
-value="{{ old('origin_zipcode',$settings->origin_zipcode ?? '') }}">
-
-<small class="text-muted">De onde você despacha os produtos.</small>
-
-</div>
-
-<div class="col-md-3 mb-3 d-flex align-items-end">
-
-<div class="form-check form-switch mb-2">
-    <input
-        type="checkbox"
-        name="correios_enabled"
-        value="1"
-        class="form-check-input"
-        id="correios_enabled"
-        {{ old('correios_enabled',$settings->correios_enabled ?? false) ? 'checked' : '' }}>
-    <label class="form-check-label" for="correios_enabled">
-        Habilitar cálculo automático dos Correios
-    </label>
-</div>
-
-</div>
-
 
 
 <div class="col-md-4 mb-3">

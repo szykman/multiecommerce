@@ -27,10 +27,6 @@ class Product extends Model
         'promotion_end',
 
         'stock',
-        'weight',
-        'height',
-        'width',
-        'length',
         'active',
         'has_variants',
 

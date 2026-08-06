@@ -280,12 +280,6 @@ Route::middleware('tenant')->group(function () {
         )
         ->name('store.checkout.pay');
 
-        Route::get(
-            '/checkout/pagar/{order}/status',
-            [CheckoutController::class,'paymentStatus']
-        )
-        ->name('store.checkout.payment.status');
-
         Route::post(
             '/checkout/pagar/{order}/confirmar',
             [CheckoutController::class,'confirmPaidByCustomer']

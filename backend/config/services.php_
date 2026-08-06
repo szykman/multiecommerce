@@ -28,13 +28,6 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
- 
-'correios' => [
-    'username' => env('CORREIOS_USERNAME'),
-    'access_code' => env('CORREIOS_ACCESS_CODE'),
-    'posting_card' => env('CORREIOS_POSTING_CARD'),
-],
-
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),

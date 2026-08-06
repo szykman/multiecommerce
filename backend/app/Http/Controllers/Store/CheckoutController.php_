@@ -320,23 +320,6 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Endpoint leve pra tela de pagamento consultar (via JS,
-     * periodicamente) se o pedido já foi confirmado — usado pelos
-     * gateways com confirmação automática (Mercado Pago, etc.), que
-     * não dependem do cliente clicar em nada.
-     */
-    public function paymentStatus(Order $order)
-    {
-        $customer = Auth::guard('customer')->user();
-
-        abort_if($order->customer_id !== $customer->id, 403);
-
-        return response()->json([
-            'status' => $order->status,
-        ]);
-    }
-
-    /**
      * O cliente clica "Já paguei" — auto-declaração, ainda precisa
      * o lojista conferir e confirmar manualmente no admin.
      */

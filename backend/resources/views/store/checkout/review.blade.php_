@@ -99,7 +99,7 @@
                         value="{{ $option['provider'] }}|{{ $option['name'] }}"
                         class="form-check-input me-2 shipping-option"
                         data-price="{{ $option['price'] }}"
-                        {{ $index === $preSelectedIndex ? 'checked' : '' }}
+                        {{ $index === 0 ? 'checked' : '' }}
                         required>
                     {{ $option['name'] }}
                     @if($option['estimated_days'])
@@ -117,13 +117,13 @@
 
             <div class="d-flex justify-content-between mb-2">
                 <span>Frete</span>
-                <span id="shipping_display">R$ {{ number_format($shippingOptions[$preSelectedIndex]['price'], 2, ',', '.') }}</span>
+                <span id="shipping_display">R$ {{ number_format($shippingOptions[0]['price'], 2, ',', '.') }}</span>
             </div>
 
             <div class="d-flex justify-content-between mb-3">
                 <strong>Total</strong>
                 <strong class="fs-5 text-primary" id="total_display">
-                    R$ {{ number_format($cartTotal + $shippingOptions[$preSelectedIndex]['price'], 2, ',', '.') }}
+                    R$ {{ number_format($cartTotal + $shippingOptions[0]['price'], 2, ',', '.') }}
                 </strong>
             </div>
 

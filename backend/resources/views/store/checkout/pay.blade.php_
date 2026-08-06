@@ -48,23 +48,7 @@
 
         <hr>
 
-        @php
-            // PIX manual depende do cliente avisar "já paguei" e do
-            // lojista confirmar. Qualquer outro provider (Mercado
-            // Pago, e os que vierem depois) confirma sozinho via
-            // webhook — não faz sentido pedir pro cliente clicar
-            // em nada, só esperar.
-            $isAutoConfirm = $payment->provider !== 'pix_manual';
-        @endphp
-
-        @if($isAutoConfirm)
-
-        <div id="auto_confirm_waiting" class="alert alert-info mb-0">
-            <i class="bi bi-arrow-repeat"></i>
-            Aguardando confirmação automática do pagamento...
-        </div>
-
-        @elseif($payment->status === 'awaiting_confirmation')
+        @if($payment->status === 'awaiting_confirmation')
 
         <div class="alert alert-warning mb-0">
             <i class="bi bi-hourglass-split"></i>
@@ -87,13 +71,8 @@
 </div>
 
 <p class="text-center text-muted small mt-3">
-    @if($isAutoConfirm)
-        Assim que o pagamento cair, esta página atualiza sozinha —
-        não precisa clicar em nada.
-    @else
-        Depois de pagar, clique em "Já paguei" para avisar a loja.
-        O pedido será confirmado assim que o pagamento for conferido.
-    @endif
+    Depois de pagar, clique em "Já paguei" para avisar a loja.
+    O pedido será confirmado assim que o pagamento for conferido.
 </p>
 
 </div>
@@ -128,34 +107,5 @@ document.getElementById('copy_btn').addEventListener('click', function(){
 });
 
 </script>
-
-@if($isAutoConfirm)
-<script>
-
-// Verifica a cada 4 segundos se o pedido já foi confirmado
-// automaticamente (webhook do gateway) — sem exigir ação do cliente.
-const statusUrl = "{{ route('store.checkout.payment.status', $order) }}";
-const confirmationUrl = "{{ route('store.checkout.confirmation', $order) }}";
-
-const pollInterval = setInterval(function(){
-
-    fetch(statusUrl)
-        .then(function(r){ return r.json(); })
-        .then(function(data){
-
-            if(data.status === 'paid'){
-                clearInterval(pollInterval);
-                window.location.href = confirmationUrl;
-            }
-
-        })
-        .catch(function(err){
-            console.error('Erro ao verificar status do pagamento:', err);
-        });
-
-}, 4000);
-
-</script>
-@endif
 
 @endsection

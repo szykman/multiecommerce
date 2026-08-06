@@ -15,11 +15,15 @@ use Illuminate\Support\Str;
  * usado no CorreiosShippingCalculator, pra manter consistência e
  * não adicionar dependência nova no composer.
  *
- * Diferente do PIX manual: a confirmação é AUTOMÁTICA, via webhook
- * (ver app/Http/Controllers/Webhooks/MercadoPagoWebhookController).
- * O lojista não precisa confirmar nada manualmente.
+ * Fica tudo dentro da própria loja (o cliente nunca sai pro domínio
+ * do Mercado Pago) — legítimo porque PIX não envolve dado sensível
+ * de pagamento (diferente de cartão, que exigiria tokenização via
+ * Bricks/Checkout Transparente antes de chegar no backend).
+ *
+ * Confirmação é AUTOMÁTICA, via webhook (ver
+ * app/Http/Controllers/Webhooks/MercadoPagoWebhookController).
  */
-class MercadoPagoGateway implements PaymentGatewayInterface
+class MercadoPagoPixGateway implements PaymentGatewayInterface
 {
     protected const API_URL = 'https://api.mercadopago.com/v1/payments';
 
@@ -39,6 +43,8 @@ class MercadoPagoGateway implements PaymentGatewayInterface
             'transaction_amount' => (float) $order->total,
             'description' => 'Pedido #'.$order->id,
             'payment_method_id' => 'pix',
+            'external_reference' => (string) $order->id,
+            'notification_url' => route('webhooks.mercadopago', ['store_id' => $order->store_id]),
             'payer' => [
                 'email' => $customer->email,
                 'first_name' => $customer->name,
@@ -49,8 +55,6 @@ class MercadoPagoGateway implements PaymentGatewayInterface
 
             $response = Http::withToken($accessToken)
                 ->withHeaders([
-                    // Evita cobrança duplicada se a requisição for
-                    // reenviada por instabilidade de rede.
                     'X-Idempotency-Key' => (string) Str::uuid(),
                 ])
                 ->post(self::API_URL, $payload);
@@ -70,11 +74,6 @@ class MercadoPagoGateway implements PaymentGatewayInterface
 
             $transactionData = $data['point_of_interaction']['transaction_data'] ?? [];
 
-            // Devolvemos as MESMAS chaves que o PixManualGateway usa
-            // (txid, copy_paste, pix_key, holder_name, amount) — assim
-            // a tela de pagamento (checkout/pay.blade.php) funciona
-            // igual pros dois provedores, sem precisar de nenhuma
-            // lógica condicional na view.
             return [
                 'provider' => 'mercadopago',
                 'txid' => (string) ($data['id'] ?? ''),

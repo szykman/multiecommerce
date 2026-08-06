@@ -255,9 +255,6 @@ class StoreSettingsController extends Controller
         */
 
 
-        // Checkbox so vem no request quando marcado.
-        $data['correios_enabled'] = $request->boolean('correios_enabled');
-
         $settings->update($data);
 
 

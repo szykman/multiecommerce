@@ -47,13 +47,10 @@ class StoreSetting extends Model
 'favicon_media_id',
 'document',    
 'settings',
-'origin_zipcode',
-'correios_enabled',
     ];
 
 protected $casts = [
     'settings' => 'array',
-    'correios_enabled' => 'boolean',
 ];
 
     public function store()
