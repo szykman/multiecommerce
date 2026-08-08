@@ -28,7 +28,16 @@ class MercadoPagoWebhookController extends Controller
             return response()->json(['ignored' => true]);
         }
 
-        $payment = Payment::where('provider', 'mercadopago')
+        // O provider gravado no Payment é sempre um dos 3 sub-métodos
+        // (mercadopago_pix, mercadopago_boleto, mercadopago_checkout_pro)
+        // — nunca o literal "mercadopago". Comparar com o literal fazia
+        // esse where nunca casar com nada, e todo webhook caía direto
+        // no "ignored" antes de consultar a API.
+        $payment = Payment::whereIn('provider', [
+                'mercadopago_pix',
+                'mercadopago_boleto',
+                'mercadopago_checkout_pro',
+            ])
             ->where('reference', $paymentId)
             ->first();
 
@@ -43,7 +52,7 @@ class MercadoPagoWebhookController extends Controller
         }
 
         $method = StorePaymentMethod::where('store_id', $order->store_id)
-            ->where('provider', 'mercadopago')
+            ->where('provider', $payment->provider)
             ->first();
 
         $accessToken = $method->credentials['access_token'] ?? null;

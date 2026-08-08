@@ -44,6 +44,27 @@ class MercadoPagoBoletoGateway implements PaymentGatewayInterface
             throw new \RuntimeException('Para pagar com boleto, complete seu CPF em "Minha Conta" antes de continuar.');
         }
 
+        // O MP exige first_name e last_name separados pra boleto
+        // registrado — o Customer só guarda um campo "name" único,
+        // então quebramos na primeira palavra. Se o cliente cadastrou
+        // só um nome (sem sobrenome), repetimos o mesmo valor no
+        // last_name — MP rejeita a cobrança inteira se vier vazio.
+        $nameParts = preg_split('/\s+/', trim($customer->name), 2);
+
+        $firstName = $nameParts[0] ?? $customer->name;
+        $lastName = $nameParts[1] ?? $nameParts[0] ?? $customer->name;
+
+        // Boleto registrado também exige o endereço completo do
+        // pagador. Usamos o snapshot gravado no pedido (não a
+        // Address ao vivo) porque é o endereço que valeu pra esse
+        // pedido específico, mesmo que o cliente edite/apague o
+        // cadastro depois.
+        $addressSnapshot = $order->address_snapshot ?? [];
+
+        if (empty($addressSnapshot['zipcode']) || empty($addressSnapshot['street']) || empty($addressSnapshot['city']) || empty($addressSnapshot['state'])) {
+            throw new \RuntimeException('Não foi possível gerar o boleto: endereço do pedido incompleto.');
+        }
+
         $payload = [
             'transaction_amount' => (float) $order->total,
             'description' => 'Pedido #'.$order->id,
@@ -52,10 +73,19 @@ class MercadoPagoBoletoGateway implements PaymentGatewayInterface
             'notification_url' => route('webhooks.mercadopago', ['store_id' => $order->store_id]),
             'payer' => [
                 'email' => $customer->email,
-                'first_name' => $customer->name,
+                'first_name' => $firstName,
+                'last_name' => $lastName,
                 'identification' => [
                     'type' => strlen($document) > 11 ? 'CNPJ' : 'CPF',
                     'number' => $document,
+                ],
+                'address' => [
+                    'zip_code' => preg_replace('/\D/', '', $addressSnapshot['zipcode']),
+                    'street_name' => $addressSnapshot['street'],
+                    'street_number' => $addressSnapshot['number'] ?? 'S/N',
+                    'neighborhood' => $addressSnapshot['neighborhood'] ?? '',
+                    'city' => $addressSnapshot['city'],
+                    'federal_unit' => $addressSnapshot['state'],
                 ],
             ],
         ];

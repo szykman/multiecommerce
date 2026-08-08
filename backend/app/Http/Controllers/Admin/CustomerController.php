@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Rules\ValidCpfCnpj;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -40,5 +41,28 @@ class CustomerController extends Controller
         }]);
 
         return view('admin.customers.show', compact('customer'));
+    }
+
+    /**
+     * O lojista pode editar o CPF/CNPJ do cliente (ex: cliente pediu
+     * ajuda por telefone/WhatsApp) — sem isso, boleto fica travado
+     * até o próprio cliente preencher pela área dele.
+     */
+    public function update(Request $request, Customer $customer)
+    {
+        abort_if(
+            $customer->store_id != auth()->user()->store_id,
+            403
+        );
+
+        $data = $request->validate([
+            'document' => ['required', 'string', new ValidCpfCnpj()],
+        ]);
+
+        $customer->update([
+            'document' => preg_replace('/\D/', '', $data['document']),
+        ]);
+
+        return back()->with('success', 'CPF/CNPJ do cliente atualizado.');
     }
 }

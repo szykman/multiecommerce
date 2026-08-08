@@ -23,8 +23,37 @@
 
             <p class="mb-1"><strong>E-mail:</strong> {{ $customer->email }}</p>
             <p class="mb-1"><strong>Telefone:</strong> {{ $customer->phone ?: '—' }}</p>
-            <p class="mb-1"><strong>Documento:</strong> {{ $customer->document ?: '—' }}</p>
-            <p class="mb-0"><strong>Cliente desde:</strong> {{ $customer->created_at->format('d/m/Y') }}</p>
+            <p class="mb-3"><strong>Cliente desde:</strong> {{ $customer->created_at->format('d/m/Y') }}</p>
+
+            @if($errors->any())
+            <div class="alert alert-danger py-2 small mb-2">
+                @foreach($errors->all() as $error)
+                    {{ $error }}<br>
+                @endforeach
+            </div>
+            @endif
+
+            <form method="POST" action="{{ route('customers.update', $customer) }}" class="d-flex gap-2">
+                @csrf
+                @method('PUT')
+
+                <div class="flex-grow-1">
+                    <label class="form-label small mb-1"><strong>CPF/CNPJ</strong> <span class="text-muted">(necessário pra boleto)</span></label>
+                    <input
+                        type="text"
+                        name="document"
+                        id="customer_document_input"
+                        class="form-control form-control-sm"
+                        value="{{ old('document', $customer->document) }}"
+                        placeholder="000.000.000-00"
+                        required>
+                </div>
+
+                <button type="submit" class="btn btn-sm btn-primary align-self-end">
+                    Salvar
+                </button>
+
+            </form>
 
         </div>
     </div>
@@ -96,5 +125,37 @@
 </div>
 
 </div>
+
+<script>
+// Mesma máscara de CPF/CNPJ do storefront — decide pelo tamanho
+// dos dígitos, sem exigir que o lojista escolha o tipo.
+const customerDocumentInput = document.getElementById('customer_document_input');
+
+function maskCpfCnpjAdmin(value){
+
+    let digits = value.replace(/\D/g, '').slice(0, 14);
+
+    if(digits.length <= 11){
+        return digits
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+
+    return digits
+        .replace(/(\d{2})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1/$2')
+        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+
+if (customerDocumentInput) {
+    customerDocumentInput.value = maskCpfCnpjAdmin(customerDocumentInput.value);
+
+    customerDocumentInput.addEventListener('input', function(){
+        this.value = maskCpfCnpjAdmin(this.value);
+    });
+}
+</script>
 
 @endsection

@@ -295,6 +295,15 @@ class CheckoutController extends Controller
 
         $order->update(['payment_method' => $method->provider]);
 
+        // Checkout Pro (e qualquer gateway futuro no mesmo estilo) não
+        // usa a nossa tela de pagamento — o cliente precisa ir direto
+        // pro ambiente do provedor. Sem isso, ele caía sempre na tela
+        // de PIX (pay.blade.php), que fica vazia pra esse tipo de
+        // cobrança porque não existe copy_paste/pix_key na resposta.
+        if (! empty($chargeData['redirect_url'])) {
+            return redirect()->away($chargeData['redirect_url']);
+        }
+
         return redirect()->route('store.checkout.pay', $order);
     }
 

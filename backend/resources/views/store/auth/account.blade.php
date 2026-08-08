@@ -82,11 +82,46 @@
         <input type="text" name="phone" class="form-control" value="{{ old('phone', $customer->phone) }}" placeholder="+55 11 91234-5678">
     </div>
 
+    <div class="mb-3">
+        <label class="form-label">CPF ou CNPJ</label>
+        <input type="text" name="document" id="document_input" class="form-control" value="{{ old('document', $customer->document) }}" placeholder="000.000.000-00" required>
+        <small class="text-muted">Necessário para emissão de boleto e nota fiscal.</small>
+    </div>
+
     <button type="submit" class="btn btn-primary">
         Salvar alterações
     </button>
 
 </form>
+
+<script>
+// Mesma máscara de CPF/CNPJ usada no cadastro.
+const documentInput = document.getElementById('document_input');
+
+function maskCpfCnpj(value){
+
+    let digits = value.replace(/\D/g, '').slice(0, 14);
+
+    if(digits.length <= 11){
+        return digits
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+
+    return digits
+        .replace(/(\d{2})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1/$2')
+        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+
+documentInput.value = maskCpfCnpj(documentInput.value);
+
+documentInput.addEventListener('input', function(){
+    this.value = maskCpfCnpj(this.value);
+});
+</script>
 
 <hr>
 

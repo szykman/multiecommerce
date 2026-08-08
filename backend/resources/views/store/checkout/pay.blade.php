@@ -10,9 +10,18 @@
 
 <div class="col-md-6">
 
+@php
+    // pay.blade.php até aqui só sabia mostrar PIX (QR code gerado a
+    // partir do copy_paste, chave PIX etc.) — qualquer outro provider
+    // caía nessa mesma tela e ficava com informação errada (boleto
+    // virando "QR code" ilegível, por exemplo). Agora ramifica pelo
+    // tipo real de cobrança.
+    $isBoleto = $payment->provider === 'mercadopago_boleto';
+@endphp
+
 <div class="text-center mb-4">
-    <i class="bi bi-qr-code display-4 text-primary"></i>
-    <h2 class="mt-2">Pague com PIX</h2>
+    <i class="bi {{ $isBoleto ? 'bi-upc-scan' : 'bi-qr-code' }} display-4 text-primary"></i>
+    <h2 class="mt-2">{{ $isBoleto ? 'Pague com Boleto' : 'Pague com PIX' }}</h2>
     <p class="text-muted">Pedido #{{ $order->id }}</p>
 </div>
 
@@ -23,11 +32,32 @@
             R$ {{ number_format($payment->amount, 2, ',', '.') }}
         </h3>
 
+        @if($isBoleto)
+
+        @if(! empty($payment->raw_response['boleto_url']))
+        <a
+            href="{{ $payment->raw_response['boleto_url'] }}"
+            target="_blank"
+            rel="noopener"
+            class="btn btn-primary w-100 mb-3">
+            <i class="bi bi-file-earmark-text"></i>
+            Visualizar / imprimir boleto
+        </a>
+        @endif
+
+        <p class="text-muted small mb-3">
+            Ou copie a linha digitável abaixo no app do seu banco.
+        </p>
+
+        @else
+
         <div id="qrcode" class="d-flex justify-content-center mb-3"></div>
 
         <p class="text-muted small mb-3">
             Escaneie o QR code no app do seu banco, ou copie o código abaixo.
         </p>
+
+        @endif
 
         <div class="input-group mb-3">
             <input
@@ -41,10 +71,12 @@
             </button>
         </div>
 
+        @if(! $isBoleto)
         <p class="text-muted small">
             Chave PIX: <strong>{{ $payment->raw_response['pix_key'] ?? '' }}</strong><br>
             Titular: {{ $payment->raw_response['holder_name'] ?? '' }}
         </p>
+        @endif
 
         <hr>
 
@@ -106,11 +138,13 @@
 
 <script>
 
+@if(! $isBoleto)
 new QRCode(document.getElementById('qrcode'), {
     text: document.getElementById('copy_paste_input').value,
     width: 220,
     height: 220,
 });
+@endif
 
 document.getElementById('copy_btn').addEventListener('click', function(){
 

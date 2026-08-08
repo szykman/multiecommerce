@@ -97,6 +97,21 @@
 
     </div>
 
+    <div class="mb-3">
+        <label class="form-label">CPF ou CNPJ</label>
+        <input
+            type="text"
+            name="document"
+            id="document_input"
+            class="form-control"
+            placeholder="000.000.000-00"
+            value="{{ old('document') }}"
+            required>
+        <small class="text-muted">
+            Necessário para emissão de boleto e nota fiscal.
+        </small>
+    </div>
+
     <div class="row">
 
         <div class="col-md-6 mb-3">
@@ -200,6 +215,35 @@ phoneCountry.addEventListener('change', function(){
 });
 
 applyPlaceholder();
+
+// Máscara de CPF/CNPJ — decide qual aplicar pela quantidade de
+// dígitos digitados (até 11 = CPF, 12+ = CNPJ), sem exigir que o
+// cliente escolha o tipo manualmente.
+const documentInput = document.getElementById('document_input');
+
+function maskCpfCnpj(value){
+
+    let digits = value.replace(/\D/g, '').slice(0, 14);
+
+    if(digits.length <= 11){
+        // CPF: 000.000.000-00
+        return digits
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d)/, '$1.$2')
+            .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+
+    // CNPJ: 00.000.000/0000-00
+    return digits
+        .replace(/(\d{2})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1/$2')
+        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+
+documentInput.addEventListener('input', function(){
+    this.value = maskCpfCnpj(this.value);
+});
 
 function updateHiddenPhone(){
 

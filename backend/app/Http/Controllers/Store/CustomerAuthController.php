@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Store;
 
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Rules\ValidCpfCnpj;
 use App\Services\TenantManager;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
@@ -53,6 +54,11 @@ class CustomerAuthController extends Controller
                 },
             ],
 
+            // Obrigatório desde o cadastro: boleto (Mercado Pago) exige
+            // o CPF/CNPJ do pagador pra emitir a cobrança, e vai servir
+            // também pra nota fiscal futuramente.
+            'document' => ['required', 'string', new ValidCpfCnpj()],
+
             'password' => [
                 'required',
                 'string',
@@ -67,6 +73,7 @@ class CustomerAuthController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'phone' => $data['phone'] ?? null,
+            'document' => preg_replace('/\D/', '', $data['document']),
             'password' => Hash::make($data['password']),
         ]);
 
@@ -140,7 +147,10 @@ class CustomerAuthController extends Controller
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:30',
+            'document' => ['required', 'string', new ValidCpfCnpj()],
         ]);
+
+        $data['document'] = preg_replace('/\D/', '', $data['document']);
 
         $customer->update($data);
 

@@ -456,7 +456,7 @@ Route::middleware([
         'customers',
         AdminCustomerController::class
     )
-    ->only(['index', 'show']);
+    ->only(['index', 'show', 'update']);
 
 
     /*
